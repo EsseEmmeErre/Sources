@@ -1,0 +1,968 @@
+;-> MacBurgher by Stefano Maria Regattin
+;d> 7 agosto 2008 dalla versione per Windows
+;m> 9,10,11,12,14,17 agosto 2008
+;m> 11 settembre 2008
+;m> 15,17 ottobre 2008
+;m> 9 gennaio 2009
+;m> 24,26 luglio 2009
+;m> 15,17,27 novembre 2009
+;m> 13,14,15,16,19,20,21 dicembre 2009
+;m> 8,9,10,11,24,25 aprile 2010
+;m> 4,5,7,8,9 maggio 2010
+;m> 11,21 luglio 2010
+;m> 6,7 marzo 2011
+;m> 2,15 aprile 2011
+;m> 5,6,7,10,13,17,18 maggio 2011
+;m> 25,26 novembre 2017
+;m> 6 dicembre 2017
+;-------------------
+
+JMP InizioDelProgramma
+
+Dc.b "$VER: MacBurgher 1.1 (6/12/2017)"
+
+Even
+
+InizioDelProgramma
+
+;--------------------------------------------------
+;le seguenti costanti indicano il tipo di finestra
+;the following constants state the window's kind
+;------------------------------------------------
+
+;window sizing button
+#BottoneRidimensionaFinestra=1
+
+;draggable window
+#FinestraMovibile=2
+
+;window depth button
+#BottoneNascondiFinestra=4
+
+;window close button
+#BottoneChiudiFinestra=8
+
+;sizing window right border (you must set gimme-zero-zero to use it)
+#BordoDestraFinestraRidimensionabile=16
+
+;sizing window bottom border (you must set gimme-zero-zero to use it)
+#BordoBassoFinestraRidimensionabile=32
+
+;backdrop window
+#FinestraDiSfondo=256
+
+;gimme-zero-zero window
+#FinestraConMemoriaBottoni=1024
+
+;borderless window
+#FinestraSenzaBordi=2048
+
+;window activated
+#FinestraAttivata=4096
+
+
+;---------------------------------------
+;questi sono gli eventi di una finestra
+;these are the events of a window
+;---------------------------------
+
+;you have pressed a mouse button
+#HaiPremutoUnTastoDelTopo=8
+
+;you have moved the mouse
+#HaiMossoIlTopo=16
+
+;you have pressed a button
+#HaiPremutoUnBottone=32
+
+;you have released a button
+#HaiRilasciatoUnBottone=64
+
+;you have activated a menu
+#HaiAttivatoUnMenu=256
+
+;you have closed the window
+#HaiChiusoLaFinestra=512
+
+;you have pressed a key
+#HaiPremutoUnTasto=1024
+
+;you have inserted a diskette
+#HaiInseritoUnDisco=32768
+
+;you have removed a diskette
+#HaiToltoUnDisco=65536
+
+;you have activated the window
+#HaiAttivatoLaFinestra=262144
+
+;you have deactivated the window
+#HaiDisattivatoLaFinestra=524288
+
+
+;-----------------------------------------
+;questi sono i valori validi per MenuItem
+;this are the valid values for MenuItem
+;---------------------------------------
+
+;normal menu
+#MenuNormale=0
+
+;switch menu
+#MenuAttivoONonAttivo=1
+
+;one of the deactivated voices
+#UnaDelleVociNonAttive=2
+
+;the current switch menu is active
+#MenuAttivo=3
+
+;the current voice is active
+#UnaDelleVociAttiva=4
+
+
+;-------------------------------------------
+;questi sono i valori ascii dei tasti usati
+;this are the used key ascii values
+;-----------------------------------
+
+;esc key ascii value
+#TastoFugaASCII=27
+
+;cursor up key ascii value
+#TastoCursoreSuASCII=28
+
+;cursor down key ascii value
+#TastoCursoreGiuASCII=29
+
+;cursor right key ascii value
+#TastoCursoreDestraASCII=30
+
+;cursor left key ascii value
+#TastoCursoreSinistraASCII=31
+
+;space bar key ascii value
+#TastoSpazioASCII=32
+
+
+;---------------------------
+;queste sono altre costanti
+;these are other constants
+;--------------------------
+
+;window referring number
+#Finestra=0
+
+;high resolution screen flag
+#SchermoAdAltaRisoluzione=8
+
+;interlaced screen flag
+#SchermoInterallacciato=16
+
+;hamburgher screen
+#SchermoPanino=1
+
+;hamburgher screen bitmap
+#BitMapSchermoPanino=1
+
+;workbench screen referring number
+#SchermoWB=0
+
+;main window properties
+#TipoFin=#BottoneChiudiFinestra+#FinestraConMemoriaBottoni+#FinestraAttivata
+
+;menu referring number
+#Menu=0
+
+;topaz font height
+#GrandezzaFonteTopaz=8
+
+
+;empty block
+#BloccoVuoto=0
+
+;stairs
+#Piattaforma=1
+
+;bread above
+#PaneSopra=2
+
+;lettuce
+#Lattuga=3
+
+;beef
+#Carne=4
+
+;bread below
+#PaneSotto=5
+
+
+;create play map
+#CreaLaMappa=0
+
+;draw play map
+#DisegnaLaMappa=1
+
+
+;hamburgher image height
+#AltezzaImmaginePanino=300
+
+;map height
+#AltezzaMappa=30
+
+;hamburgher image width
+#LarghezzaImmaginePanino=400
+
+;map width
+#LarghezzaMappa=40
+
+;hamburgher length
+#LunghezzaFetta=8
+
+;text without background colour
+#TestoSenzaColoreDiSfondo=0
+
+
+;at start
+#Inizio=0
+
+;in game
+#Gioco=1
+
+;hamburgher shape
+#FormaPanino=0
+
+;hamburgher image
+#ImmaginePanino=0
+
+;sandwiches maximum
+#MassimoPanini=8
+
+;workbench colours map
+#MappaColoriWB=0
+
+;hamburgher colours map
+#MappaColoriPanino=1
+
+;colour match
+#PrecisioneColori=40
+
+
+;          block height, window font size,block width,    level,  hostile at right,hostile at left,hamburgher made
+DEFTYPE .b AltezzaBlocco,GrandezzaFonte,  LarghezzaBlocco,Livello,OstileADestra,   OstileASinistra,PaninoCompletato
+
+;          hamburghers made,in game hamburghers
+DEFTYPE .b PaniniCompletati,PaniniMessi
+
+;          white colour,beef colour,leaf colour,  black colour,hostiles colour,near hostiles colour,bread over colour
+DEFTYPE .w ColoreBianco,ColoreCarne,ColoreLattuga,ColoreNero,  ColoreOstili,   ColoreOstiliVicino,  ColorePaneSopra
+
+;          bread below colour,stairs colour,    workbench colours,win width,win height
+DEFTYPE .w ColorePaneSotto,   ColorePiattaforma,ColoriWB,         XLunFin,  YLunFin
+
+
+;end of the game
+FineDelGioco.b=False
+
+Dim Mappa(#LarghezzaMappa-1,#AltezzaMappa-1)
+
+;author name
+Autore$="Stefano Maria Regattin"
+
+;main window title
+TitoloFinestra$="MacBurgher 1.1"
+
+TitoloSchermo$=TitoloFinestra$+" by "+Autore$+" on Wed 6th Dec 2017"
+
+TitoloSchermoPanino$=TitoloFinestra$+" by "+Autore$+" on Wed 6th Dec 2017-please wait..."
+
+;hostile characters variables
+NEWTYPE .Ostile
+
+;pepper time
+ TempoPepato.w
+
+;hostile x position
+ XPos.w
+
+;hostile y position
+ YPos.w
+
+End NEWTYPE
+Ostili.Ostile\TempoPepato=0,0,0
+
+;hamburgher variables
+NEWTYPE .Panino
+;hamburgher x position
+ XPos.b
+
+;bread over y position squares
+ YPosPaneSopra.w[#LunghezzaFetta]
+
+;bread over final y position
+ YPosFinalePaneSopra.w
+
+;lettuce y position squares
+ YPosLattuga.w[#LunghezzaFetta]
+
+;lettuce final y position
+ YPosFinaleLattuga.w
+
+;beaf y position squares
+ YPosCarne.w[#LunghezzaFetta]
+
+;beaf final y position
+ YPosFinaleCarne.w
+
+;bread below y position squares
+ YPosPaneSotto.w[#LunghezzaFetta]
+
+;bread below final y position
+ YPosFinalePaneSotto.w
+End NEWTYPE
+Dim Panini.Panino(#MassimoPanini-1)
+
+
+;opens the main window
+Statement ApriLaFinestra{}
+SHARED ColoreBianco
+SHARED ColoreNero
+SHARED ColoriWB
+SHARED TitoloFinestra$
+SHARED TitoloSchermo$
+SHARED XLunFin
+SHARED YLunFin
+ IndirizzoSchermo.l=Peek.l(Addr Screen(#SchermoWB))
+ LarghezzaSchermo.w=Peek.w(IndirizzoSchermo+12)
+ AltezzaSchermo.w=Peek.w(IndirizzoSchermo+14)
+ ColoreBianco=FindColor(#MappaColoriWB,255,255,255,#PrecisioneColori)
+ ColoreNero=FindColor(#MappaColoriWB,0,0,0,#PrecisioneColori)
+ XPosFin.w=(LarghezzaSchermo-XLunFin)/2
+ YPosFin.w=(AltezzaSchermo-YLunFin)/2
+ Window #Finestra,XPosFin,YPosFin,XLunFin,YLunFin,#TipoFin,TitoloFinestra$,ColoreNero,ColoreBianco
+ XLunFin+XLunFin-4-InnerWidth-4
+ YLunFin+YLunFin-11-InnerHeight-2
+ CloseWindow #Finestra
+ Window #Finestra,XPosFin,YPosFin,XLunFin,YLunFin,#TipoFin,TitoloFinestra$,ColoreNero,ColoreBianco
+ WTitle TitoloFinestra$,TitoloSchermo$
+ WJam #TestoSenzaColoreDiSfondo
+End Statement
+
+;moves the hostile characters close to the player character
+Statement AvvicinaGliOstiliAlCuoco{XPosCuoco,YPosCuoco}
+SHARED Mappa()
+SHARED OstileADestra
+SHARED OstileASinistra
+SHARED Ostili
+ OstileADestra=False:OstileASinistra=False
+ XPosOstile.b=Ostili\XPos:YPosOstile.b=Ostili\YPos:YDistanza.b=YPosOstile-YPosCuoco
+ If YDistanza>0
+  If YPosOstile MOD 3=0
+   XDistanza.b=#LarghezzaMappa
+   For XPosScala.b=0 To #LarghezzaMappa-1
+    If Mappa(XPosScala,YPosOstile)=#Piattaforma
+     XNuovaDistanza.b=XPosOstile-XPosScala
+     If Abs(XNuovaDistanza)<Abs(XDistanza) Then XDistanza=XNuovaDistanza
+    EndIf
+   Next XPosScala
+   XPiattaforma.b=Sgn(XPosOstile-XPosCuoco)
+   If Mappa(XPosOstile-XPiattaforma,YPosOstile+1)=#Piattaforma Then Ostili\XPos-Sgn(XDistanza):If XDistanza=0 Then Ostili\YPos-1
+  Else
+   Ostili\YPos-1
+  EndIf
+ EndIf
+ If YDistanza=0
+  XDistanza=XPosOstile-XPosCuoco
+  If YPosOstile<#AltezzaMappa-1
+   XPiattaforma=Min(Max(XPosOstile-Sgn(XDistanza),0),#LarghezzaMappa-1)
+   If Mappa(XPiattaforma,YPosOstile+1)=#BloccoVuoto Then XDistanza=#LarghezzaMappa
+  EndIf
+  If XDistanza<#LarghezzaMappa AND Abs(XDistanza)>1 Then Ostili\XPos-Sgn(XDistanza):XDistanza=Ostili\XPos-XPosCuoco
+  If XDistanza=-1 Then OstileASinistra=True
+  If XDistanza=1 Then OstileADestra=True
+ EndIf
+ If YDistanza<0
+  If YPosOstile MOD 3=0
+   XDistanza=#LarghezzaMappa
+   For XPosScala=0 To #LarghezzaMappa-1
+    If YPosOstile=#AltezzaMappa-3 Then FineScala.b=2 Else FineScala=3
+    For ScalaSotto=1 To FineScala
+     If Mappa(XPosScala,YPosOstile+ScalaSotto)=#Piattaforma
+      Scala.b=ScalaSotto
+     Else
+      Scala=0
+     EndIf
+    Next ScalaSotto
+    If Scala=FineScala
+     XNuovaDistanza=XPosOstile-XPosScala
+     If Abs(XNuovaDistanza)<Abs(XDistanza) Then XDistanza=XNuovaDistanza
+    EndIf
+   Next XPosScala
+   XPiattaforma=Sgn(XPosOstile-XPosCuoco)
+   If YPosOstile<#AltezzaMappa-1 AND Mappa(XPosOstile-XPiattaforma,YPosOstile+1)=#Piattaforma
+    Ostili\XPos-Sgn(XDistanza):If XDistanza=0 Then Ostili\YPos+1
+   Else
+    Ostili\XPos-Sgn(XDistanza):If XDistanza=0 Then Ostili\YPos+1
+   EndIf
+  Else
+   Ostili\YPos+1
+  EndIf
+ EndIf
+End Statement
+
+;clears the play map
+Statement CancellaLaMappa{}
+SHARED AltezzaBlocco
+SHARED LarghezzaBlocco
+ For Blocco.b=0 To AltezzaBlocco/2-1
+  For YMappa.b=0 To #AltezzaMappa-1
+   For XMappa.b=0 To #LarghezzaMappa-1
+    XInizioBlocco.w=XMappa*LarghezzaBlocco+Blocco
+    YInizioBlocco.w=YMappa*AltezzaBlocco+Blocco
+    XFineBlocco.w=XMappa*LarghezzaBlocco+LarghezzaBlocco-1-Blocco
+    YFineBlocco.w=YMappa*AltezzaBlocco+AltezzaBlocco-1-Blocco
+    WLine XInizioBlocco,YInizioBlocco,XFineBlocco,YInizioBlocco,0
+    WLine XFineBlocco,YInizioBlocco,XFineBlocco,YFineBlocco,0
+    WLine XFineBlocco,YFineBlocco,XInizioBlocco,YFineBlocco,0
+    WLine XInizioBlocco,YFineBlocco,XInizioBlocco,YInizioBlocco,0
+   Next XMappa
+  Next YMappa
+ Next Blocco
+End Statement
+
+;creates the hamburghers
+Statement CreaIPanini{}
+SHARED AltezzaBlocco
+SHARED Livello
+SHARED Mappa()
+SHARED Panini()
+SHARED PaniniMessi
+ Panino.b=0:PaniniMessi=(Livello-1) MOD #MassimoPanini+1
+ Repeat
+  For YMappa.b=1 To 16 Step 3
+   For XMappa.b=0 To #LarghezzaMappa-#LunghezzaFetta-1
+    If Panino<PaniniMessi
+     Casualita.b=Rnd(127-Min(Livello,127))
+     If Casualita=0
+      If Panino=0
+       FettaPresente.b=False
+      Else
+       FettaPresente=False
+       For PaninoPrima.b=0 To Panino-1
+        XPosPanino.b=Panini(PaninoPrima)\XPos
+        For Fetta.b=0 To #LunghezzaFetta-1
+         If XPosPanino=XMappa AND Panini(PaninoPrima)\YPosPaneSopra[Fetta]=YMappa*AltezzaBlocco-1 Then FettaPresente=True
+         If XPosPanino=XMappa AND Panini(PaninoPrima)\YPosLattuga[Fetta]=YMappa*AltezzaBlocco-1 Then FettaPresente=True
+         If XPosPanino=XMappa AND Panini(PaninoPrima)\YPosCarne[Fetta]=YMappa*AltezzaBlocco-1 Then FettaPresente=True
+         If XPosPanino=XMappa AND Panini(PaninoPrima)\YPosPaneSotto[Fetta]=YMappa*AltezzaBlocco-1 Then FettaPresente=True
+        Next Fetta
+       Next PaninoPrima
+      EndIf
+      If FettaPresente=False
+       For Fetta=0 To #LunghezzaFetta-1
+        Panini(Panino)\YPosPaneSopra[Fetta]=YMappa*AltezzaBlocco-1
+        Panini(Panino)\YPosLattuga[Fetta]=(YMappa+3)*AltezzaBlocco-1
+        Panini(Panino)\YPosCarne[Fetta]=(YMappa+6)*AltezzaBlocco-1
+        Panini(Panino)\YPosPaneSotto[Fetta]=(YMappa+9)*AltezzaBlocco-1
+        Mappa(XMappa+Fetta,YMappa+10)=#BloccoVuoto
+        Mappa(XMappa+Fetta,YMappa+11)=#BloccoVuoto
+        Mappa(XMappa+Fetta,YMappa+12)=#BloccoVuoto
+        Mappa(XMappa+Fetta,YMappa+13)=#BloccoVuoto
+        If YMappa<16 Then Mappa(XMappa+Fetta,YMappa+14)=#BloccoVuoto
+       Next Fetta
+       Panini(Panino)\YPosFinalePaneSopra=(YMappa+10)*AltezzaBlocco-1
+       Panini(Panino)\YPosFinaleLattuga=(YMappa+11)*AltezzaBlocco-1
+       Panini(Panino)\YPosFinaleCarne=(YMappa+12)*AltezzaBlocco-1
+       Panini(Panino)\YPosFinalePaneSotto=(YMappa+13)*AltezzaBlocco-1
+       Panini(Panino)\XPos=XMappa
+       Panino+1
+      EndIf
+     EndIf
+    EndIf
+   Next XMappa
+  Next YMappa
+ Until Panino=PaniniMessi
+End Statement
+
+;creates the play map
+Statement CreaLaMappa{}
+SHARED Mappa()
+SHARED Livello
+ For YMappa.b=1 To #AltezzaMappa-1
+  Casualita.b=Rnd(Livello)
+  Repeat
+   Scala.b=0
+   For XMappa.b=0 To #LarghezzaMappa-1
+    If YMappa MOD 3=1
+     If Casualita=0
+      ElementoDellaMappa.b=#Piattaforma
+     Else
+      ElementoDellaMappa=#BloccoVuoto
+     EndIf
+    Else
+     If Mappa(XMappa,YMappa-1)=#Piattaforma
+      If Casualita=2
+       Casualita=1
+      Else
+       Casualita=Rnd(8+Livello) MOD 2+1
+      EndIf
+      Select Casualita
+      Case 1
+       ElementoDellaMappa=#BloccoVuoto
+      Case 2
+       ElementoDellaMappa=#Piattaforma
+      End Select
+     Else
+      ElementoDellaMappa=#BloccoVuoto
+     EndIf
+    EndIf
+    Mappa(XMappa,YMappa)=ElementoDellaMappa
+    If YMappa>2
+     If YMappa MOD 3=0
+      If Mappa(XMappa,YMappa)=#Piattaforma Then Scala+1
+     Else
+      Scala=2
+     EndIf
+    Else
+     Scala=2
+    EndIf
+   Next XMappa
+  Until Scala>1
+ Next YMappa
+End Statement
+
+;draws the ostile characters
+Statement DisegnaGliOstili{}
+SHARED AltezzaBlocco
+SHARED ColoreOstili
+SHARED ColoreOstiliVicino
+SHARED LarghezzaBlocco
+SHARED OstileADestra
+SHARED OstileASinistra
+SHARED Ostili
+ XInizioBlocco.w=Ostili\XPos*LarghezzaBlocco
+ YInizioBlocco.w=Ostili\YPos*AltezzaBlocco
+ XFineBlocco.w=XInizioBlocco+LarghezzaBlocco-1
+ YFineBlocco.w=YInizioBlocco+AltezzaBlocco-1
+ Colore.w=ColoreOstili
+ If OstileADestra=True OR OstileASinistra=True Then Colore=ColoreOstiliVicino
+ WBox XInizioBlocco,YInizioBlocco,XFineBlocco,YFineBlocco,Colore
+End Statement
+
+;draws the player character
+Statement DisegnaIlCuoco{XPosCuoco.b,YPosCuoco.b,ViteCuoco.b}
+SHARED AltezzaBlocco
+SHARED ColoreBianco
+SHARED ColoreNero
+SHARED LarghezzaBlocco
+SHARED GrandezzaFonte
+ XInizioBlocco.w=XPosCuoco*LarghezzaBlocco
+ YInizioBlocco.w=YPosCuoco*AltezzaBlocco
+ XFineBlocco.w=XInizioBlocco+LarghezzaBlocco-1
+ YFineBlocco.w=YInizioBlocco+AltezzaBlocco-1
+ WBox XInizioBlocco,YInizioBlocco,XFineBlocco,YFineBlocco,ColoreBianco
+ WLocate XInizioBlocco+(LarghezzaBlocco-GrandezzaFonte)/2,YInizioBlocco-GrandezzaFonte:WColour ColoreBianco:Print ViteCuoco
+End Statement
+
+Statement DisegnaIlPanino{}
+SHARED AltezzaBlocco
+SHARED LarghezzaBlocco
+ XIniPanino.w=(InnerWidth-#LarghezzaImmaginePanino)/2:YIniPanino.w=(InnerHeight-#AltezzaImmaginePanino)/2
+ Use BitMap #ImmaginePanino
+ For Pari.b=0 To 1
+  For YPunto.b=Pari To AltezzaBlocco-1 Step 2
+   For XPunto.b=0 To LarghezzaBlocco-1
+    For YPanino.w=YPunto To #AltezzaImmaginePanino-1 Step AltezzaBlocco
+     For XPanino.w=XPunto To #LarghezzaImmaginePanino-1 Step LarghezzaBlocco
+      X0Panino.w=XIniPanino+XPanino:Y0Panino.w=YIniPanino+YPanino
+      If Y0Panino>-1 AND Y0Panino<InnerHeight-YIniPanino
+       If X0Panino>-1 AND X0Panino<InnerWidth-XIniPanino
+        ColorePunto.w=Point(XPanino,YPanino)
+        WPlot X0Panino,Y0Panino,ColorePunto
+       EndIf
+      EndIf
+     Next XPanino
+    Next YPanino
+   Next XPunto
+  Next YPunto
+ Next Pari
+ FlushEvents:WaitEvent
+End Statement
+
+;draws the hamburghers
+Statement DisegnaIPanini{XPosCuoco.w,YPosCuoco.w}
+SHARED AltezzaBlocco
+SHARED ColorePaneSopra
+SHARED ColoreLattuga
+SHARED ColoreCarne
+SHARED ColorePaneSotto
+SHARED LarghezzaBlocco
+SHARED Panini()
+SHARED PaniniMessi
+ For Panino.b=0 To PaniniMessi-1
+  For Fetta.b=0 To #LunghezzaFetta-1
+   XPosBlocco.b=Panini(Panino)\XPos+Fetta
+   XPosFetta.w=XPosBlocco*LarghezzaBlocco
+   YPosFetta.w=Panini(Panino)\YPosPaneSopra[Fetta]
+   If XPosCuoco=XPosBlocco AND YPosCuoco MOD 3=0
+    If YPosFetta>YPosCuoco*AltezzaBlocco-1 AND YPosFetta-YPosCuoco*AltezzaBlocco-1<AltezzaBlocco+AltezzaBlocco/2
+     Panini(Panino)\YPosPaneSopra[Fetta]+AltezzaBlocco/2
+    EndIf
+   EndIf
+   WBox XPosFetta,YPosFetta,XPosFetta+LarghezzaBlocco-1,YPosFetta+AltezzaBlocco-1,ColorePaneSopra
+   YPosFetta=Panini(Panino)\YPosLattuga[Fetta]
+   If XPosCuoco=XPosBlocco AND YPosCuoco MOD 3=0
+    If YPosFetta>YPosCuoco*AltezzaBlocco-1 AND YPosFetta-YPosCuoco*AltezzaBlocco-1<AltezzaBlocco+AltezzaBlocco/2
+     Panini(Panino)\YPosLattuga[Fetta]+AltezzaBlocco/2
+    EndIf
+   EndIf
+   WBox XPosFetta,YPosFetta,XPosFetta+LarghezzaBlocco-1,YPosFetta+AltezzaBlocco-1,ColoreLattuga
+   YPosFetta=Panini(Panino)\YPosCarne[Fetta]
+   If XPosCuoco=XPosBlocco AND YPosCuoco MOD 3=0
+    If YPosFetta>YPosCuoco*AltezzaBlocco-1 AND YPosFetta-YPosCuoco*AltezzaBlocco-1<AltezzaBlocco+AltezzaBlocco/2
+     Panini(Panino)\YPosCarne[Fetta]+AltezzaBlocco/2
+    EndIf
+   EndIf
+   WBox XPosFetta,YPosFetta,XPosFetta+LarghezzaBlocco-1,YPosFetta+AltezzaBlocco-1,ColoreCarne
+   YPosFetta=Panini(Panino)\YPosPaneSotto[Fetta]
+   If XPosCuoco=XPosBlocco AND YPosCuoco MOD 3=0
+    If YPosFetta>YPosCuoco*AltezzaBlocco-1 AND YPosFetta-YPosCuoco*AltezzaBlocco-1<AltezzaBlocco+AltezzaBlocco/2
+     Panini(Panino)\YPosPaneSotto[Fetta]+AltezzaBlocco/2
+    EndIf
+   EndIf
+   WBox XPosFetta,YPosFetta,XPosFetta+LarghezzaBlocco-1,YPosFetta+AltezzaBlocco-1,ColorePaneSotto
+  Next Fetta
+ Next Panino
+End Statement
+
+;draws the play map
+Statement DisegnaLaMappa{Modo.b}
+SHARED AltezzaBlocco
+SHARED ColoreCarne
+SHARED ColoreLattuga
+SHARED ColoreNero
+SHARED ColorePaneSopra
+SHARED ColorePaneSotto
+SHARED ColorePiattaforma
+SHARED LarghezzaBlocco
+SHARED Mappa()
+ If Modo=#Inizio
+  For Blocco.b=AltezzaBlocco/2-1 To 0 Step -1
+   For YMappa.b=0 To #AltezzaMappa-1
+    For XMappa.b=0 To #LarghezzaMappa-1
+     ElementoDellaMappa.b=Mappa(XMappa,YMappa)
+     If ElementoDellaMappa=#Piattaforma Then Colore.b=ColorePiattaforma Else Colore=ColoreNero
+     XInizioBlocco.w=XMappa*LarghezzaBlocco+Blocco
+     YInizioBlocco.w=YMappa*AltezzaBlocco+Blocco
+     XFineBlocco.w=XMappa*LarghezzaBlocco+LarghezzaBlocco-1-Blocco
+     YFineBlocco.w=YMappa*AltezzaBlocco+AltezzaBlocco-1-Blocco
+     WLine XInizioBlocco,YInizioBlocco,XFineBlocco,YInizioBlocco,Colore
+     WLine XFineBlocco,YInizioBlocco,XFineBlocco,YFineBlocco,Colore
+     WLine XFineBlocco,YFineBlocco,XInizioBlocco,YFineBlocco,Colore
+     WLine XInizioBlocco,YFineBlocco,XInizioBlocco,YInizioBlocco,Colore
+     Next XMappa
+   Next YMappa
+  Next Blocco
+ EndIf
+ If Modo=#Gioco
+  For YMappa=0 To #AltezzaMappa-1
+   For XMappa=0 To #LarghezzaMappa-1
+    ElementoDellaMappa.b=Mappa(XMappa,YMappa)
+    Select ElementoDellaMappa
+    Case #BloccoVuoto
+     Colore=ColoreNero
+    Case #Piattaforma
+     Colore=ColorePiattaforma
+    Case #PaneSopra
+     Colore=ColorePaneSopra
+    Case #Lattuga
+     Colore=ColoreLattuga
+    Case #Carne
+     Colore=ColoreCarne
+    Case #PaneSotto
+     Colore=ColorePaneSotto
+    End Select
+    XInizioBlocco=XMappa*LarghezzaBlocco
+    YInizioBlocco=YMappa*AltezzaBlocco
+    XFineBlocco=XInizioBlocco+LarghezzaBlocco-1
+    YFineBlocco=YInizioBlocco+AltezzaBlocco-1
+    WBox XInizioBlocco,YInizioBlocco,XFineBlocco,YFineBlocco,Colore
+   Next XMappa
+  Next YMappa
+ EndIf
+End Statement
+
+Statement FaiCadereLeFette{}
+SHARED AltezzaBlocco
+SHARED Panini()
+SHARED PaniniMessi
+ For Panino.b=0 To PaniniMessi-1
+  For TipoDiFetta.b=#PaneSotto To #PaneSopra Step -1
+   FettaCaduta.b=0
+   For Fetta.b=0 To #LunghezzaFetta-1
+    Select TipoDiFetta
+    Case #PaneSopra
+     YPosFetta.w=Panini(Panino)\YPosPaneSopra[Fetta]
+     YPosFettaSotto.w=Panini(Panino)\YPosLattuga[Fetta]
+    Case #Lattuga
+     YPosFetta=Panini(Panino)\YPosLattuga[Fetta]
+     YPosFettaSotto=Panini(Panino)\YPosCarne[Fetta]
+    Case #Carne
+     YPosFetta=Panini(Panino)\YPosCarne[Fetta]
+     YPosFettaSotto=Panini(Panino)\YPosPaneSotto[Fetta]
+    Case #PaneSotto
+     YPosFetta=Panini(Panino)\YPosPaneSotto[Fetta]
+    End Select
+    If (YPosFetta+1)<Panini(Panino)\YPosFinalePaneSopra
+     If ((YPosFetta+1)/AltezzaBlocco) MOD 3=2 Then FettaCaduta+1
+     If ((YPosFetta+1)/AltezzaBlocco) MOD 3=0
+      If YPosFetta+AltezzaBlocco=YPosFettaSotto
+       Select TipoDiFetta
+       Case #PaneSopra
+        Panini(Panino)\YPosLattuga[Fetta]+AltezzaBlocco/2
+       Case #Lattuga
+        Panini(Panino)\YPosCarne[Fetta]+AltezzaBlocco/2
+       Case #Carne
+        Panini(Panino)\YPosPaneSotto[Fetta]+AltezzaBlocco/2
+       End Select
+      EndIf
+      FettaCaduta+1
+     EndIf
+    Else
+     FettaCaduta+1
+    EndIf
+   Next Fetta
+   If FettaCaduta=#LunghezzaFetta
+    For Fetta=0 To #LunghezzaFetta-1
+     Select TipoDiFetta
+     Case #PaneSopra
+      If Panini(Panino)\YPosPaneSopra[Fetta]<Panini(Panino)\YPosFinalePaneSopra
+       Panini(Panino)\YPosPaneSopra[Fetta]+AltezzaBlocco/2
+      EndIf
+     Case #Lattuga
+      If Panini(Panino)\YPosLattuga[Fetta]<Panini(Panino)\YPosFinaleLattuga
+       Panini(Panino)\YPosLattuga[Fetta]+AltezzaBlocco/2
+      EndIf
+     Case #Carne
+      If Panini(Panino)\YPosCarne[Fetta]<Panini(Panino)\YPosFinaleCarne
+       Panini(Panino)\YPosCarne[Fetta]+AltezzaBlocco/2
+      EndIf
+     Case #PaneSotto
+      If Panini(Panino)\YPosPaneSotto[Fetta]<Panini(Panino)\YPosFinalePaneSotto
+       Panini(Panino)\YPosPaneSotto[Fetta]+AltezzaBlocco/2
+      EndIf
+     End Select
+    Next Fetta
+    FettaCaduta=0
+   EndIf
+  Next TipoDiFetta
+ Next Panino
+End Statement
+
+;setups the menu
+Statement ImpostaIlMenu{}
+ MenuTitle #Menu,0,"Gioco"
+ MenuItem #Menu,#MenuNormale,0,0,"Nuovo"
+ MenuItem #Menu,#MenuNormale,0,1,"Pausa"
+ MenuItem #Menu,#MenuNormale,0,2,"Esci"
+ SetMenu #Menu
+End Statement
+
+;hamburgher completed
+Statement PaninoCompletato{}
+SHARED FineDelGioco
+SHARED Panini()
+SHARED PaninoCompletato
+SHARED PaniniCompletati
+SHARED PaniniMessi
+ PaninoCompletato=0
+ For Panino.b=0 To PaniniMessi-1
+  FetteAPosto.b=0
+  For Fetta.b=0 To #LunghezzaFetta-1
+   If Panini(Panino)\YPosPaneSopra[Fetta]=Panini(Panino)\YPosFinalePaneSopra Then FetteAPosto+1
+   If Panini(Panino)\YPosLattuga[Fetta]=Panini(Panino)\YPosFinaleLattuga Then FetteAPosto+1
+   If Panini(Panino)\YPosCarne[Fetta]=Panini(Panino)\YPosFinaleCarne Then FetteAPosto+1
+   If Panini(Panino)\YPosPaneSotto[Fetta]=Panini(Panino)\YPosFinalePaneSotto Then FetteAPosto+1
+  Next Fetta
+  If FetteAPosto=#LunghezzaFetta*4 Then PaninoCompletato+1
+ Next Panino
+ If PaninoCompletato>PaniniCompletati
+  PaninoCompletato=True:PaniniCompletati+1:If PaniniCompletati=PaniniMessi Then FineDelGioco=True
+ EndIf
+End Statement
+
+;finds the needed colours
+Statement TrovaIColori{}
+SHARED ColoreCarne
+SHARED ColoreLattuga
+SHARED ColoreOstili
+SHARED ColoreOstiliVicino
+SHARED ColorePaneSopra
+SHARED ColorePaneSotto
+SHARED ColorePiattaforma
+ ColorePiattaforma=FindColor(#MappaColoriWB,63,63,127,#PrecisioneColori)
+ ColorePaneSopra=FindColor(#MappaColoriWB,255,191,127,#PrecisioneColori)
+ ColoreLattuga=FindColor(#MappaColoriWB,63,191,63,#PrecisioneColori)
+ ColoreCarne=FindColor(#MappaColoriWB,191,63,63,#PrecisioneColori)
+ ColorePaneSotto=FindColor(#MappaColoriWB,191,127,63,#PrecisioneColori)
+ ColoreOstili=FindColor(#MappaColoriWB,255,0,0,#PrecisioneColori)
+ ColoreOstiliVicino=FindColor(#MappaColoriWB,0,0,255,#PrecisioneColori)
+End Statement
+
+
+;************************************************
+;* fine delle procedure ed inizio del programma *
+;******* procedures end and program start *******
+;************************************************
+
+
+WBStartup
+ColoriWB=2^WBDepth
+WbToScreen #SchermoWB
+
+IndirizzoSchermoWB.l=Peek.l(Addr Screen(#SchermoWB))
+YLunSchermoWB.w=Peek.w(IndirizzoSchermoWB+14)
+LarghezzaBlocco=12:If YLunSchermoWB>256 Then AltezzaBlocco=12 Else AltezzaBlocco=6
+
+;main window width
+XLunFin=4+#LarghezzaMappa*LarghezzaBlocco+4
+
+;main window height
+YLunFin=11+#AltezzaMappa*AltezzaBlocco+2
+
+InitPalette #MappaColoriWB,ColoriWB
+For ColoreWB.w=0 To ColoriWB-1
+ If CheckAGA=True
+  AGAPalRGB #MappaColoriWB,ColoreWB,AGARed(ColoreWB),AGAGreen(ColoreWB),AGABlue(ColoreWB)
+ Else
+  PalRGB #MappaColoriWB,ColoreWB,Red(ColoreWB),Green(ColoreWB),Blue(ColoreWB)
+ EndIf
+Next ColoreWB
+Use Palette #MappaColoriWB
+
+InitPalette #MappaColoriPanino,ColoriWB
+BitMap #ImmaginePanino,#LarghezzaImmaginePanino,#AltezzaImmaginePanino,4
+LoadIFF "Hamburgher.IFF",#ImmaginePanino,#MappaColoriPanino
+Screen #SchermoPanino,#SchermoAdAltaRisoluzione+#SchermoInterallacciato,TitoloSchermoPanino$
+Use Palette #MappaColoriPanino
+LarghezzaSchermoPanino.w=ScreenWidth:XImmagine.w=(LarghezzaSchermoPanino-#LarghezzaImmaginePanino)/2
+AltezzaSchermoPanino.w=ScreenHeight:YImmagine.w=(AltezzaSchermoPanino-#AltezzaImmaginePanino)/2
+ScreensBitMap #SchermoPanino,#BitMapSchermoPanino:BitMapOutput #BitMapSchermoPanino:Locate 0,2
+Use BitMap #ImmaginePanino
+For YPunto.w=0 To #AltezzaImmaginePanino-1
+ For XPunto.w=0 To #LarghezzaImmaginePanino-1
+  Colore.w=Point(XPunto,YPunto)
+  If CheckAGA=True
+   ComponenteRosso.w=AGARed(Colore)
+   ComponenteVerde.w=AGAGreen(Colore)
+   ComponenteBlu.w=AGABlue(Colore)
+  Else
+   ComponenteRosso=Red(Colore)
+   ComponenteVerde=Green(Colore)
+   ComponenteBlu=Blue(Colore)
+  EndIf
+  ColorePanino.w=FindColor(#MappaColoriWB,ComponenteRosso,ComponenteVerde,ComponenteBlu,#PrecisioneColori)
+  Plot XPunto,YPunto,ColorePanino
+ Next XPunto
+ Print "*"
+Next YPunto
+CloseScreen #SchermoPanino:WindowOutput #Finestra
+Use Screen #SchermoWB:Free Palette #MappaColoriPanino:Use Palette #MappaColoriWB
+
+OpenFontPrefs
+ GrandezzaFonte=DefaultFontHeight(1)
+CloseFontPrefs
+If GrandezzaFonte=0 Then GrandezzaFonte=#GrandezzaFonteTopaz
+
+Livello=1:ViteCuoco.b=3
+
+ApriLaFinestra{}
+ImpostaIlMenu{}
+TrovaIColori{}
+CreaLaMappa{}
+CreaIPanini{}
+Repeat
+ If VitaPersa.b=True Then Delay_ 50:VitaPersa=False
+ DisegnaLaMappa{#Inizio}
+ XPosCuoco.b=0:YPosCuoco.b=#AltezzaMappa-1
+ Ostili\TempoPepato=0:Ostili\XPos=#LarghezzaMappa-1:Ostili\YPos=0
+ Repeat
+  VWait
+  DisegnaLaMappa{#Gioco}
+  DisegnaIPanini{XPosCuoco,YPosCuoco}
+  DisegnaIlCuoco{XPosCuoco,YPosCuoco,ViteCuoco}
+  DisegnaGliOstili{}
+  FaiCadereLeFette{}
+  PaninoCompletato{}
+  FlushEvents
+  EventoFinestra.l=WaitEvent
+  Select EventoFinestra
+  Case #HaiAttivatoUnMenu
+   If MenuHit=0 AND ItemHit=2 Then FineDelGioco=True
+  Case #HaiChiusoLaFinestra
+   FineDelGioco=True
+  Case #HaiPremutoUnTasto
+   TastoPremutoASCII.b=Asc(Inkey$)
+   Select TastoPremutoASCII
+   Case #TastoFugaASCII
+    FineDelGioco=True
+   Case #TastoCursoreSuASCII
+    If YPosCuoco>0 AND Mappa(XPosCuoco,YPosCuoco)>#BloccoVuoto Then YPosCuoco-1
+   Case #TastoCursoreGiuASCII
+    If YPosCuoco<#AltezzaMappa-1
+     If Mappa(XPosCuoco,YPosCuoco+1)>#BloccoVuoto
+      YPosCuoco+1
+     Else
+      If Mappa(XPosCuoco,YPosCuoco)=#Piattaforma
+       YPosCuoco+1
+       If YPosCuoco<#AltezzaMappa-1 AND Mappa(XPosCuoco,YPosCuoco)=#BloccoVuoto Then CuocoCaduto.b=True
+      EndIf
+     EndIf
+    EndIf
+   Case #TastoCursoreDestraASCII
+    If OstileADestra=False AND XPosCuoco<#LarghezzaMappa-1
+     PosCuoco=YPosCuoco MOD 3
+     Select PosCuoco
+     Case 0
+      XPosCuoco+1:If Mappa(XPosCuoco,YPosCuoco+1)=#BloccoVuoto Then CuocoCaduto=True
+     Case 1
+      If Mappa(XPosCuoco+1,YPosCuoco)>#BloccoVuoto Then XPosCuoco+1
+     Case 2
+      If YPosCuoco<#AltezzaMappa-1 Then CuocoCaduto=True
+      XPosCuoco+1
+     End Select
+    EndIf
+   Case #TastoCursoreSinistraASCII
+    If OstileASinistra=False AND XPosCuoco>0
+     PosCuoco=YPosCuoco MOD 3
+     Select PosCuoco
+     Case 0
+      XPosCuoco-1:If Mappa(XPosCuoco,YPosCuoco+1)=#BloccoVuoto Then CuocoCaduto=True
+     Case 1
+      If Mappa(XPosCuoco-1,YPosCuoco)>#BloccoVuoto Then XPosCuoco-1
+     Case 2
+      If YPosCuoco<#AltezzaMappa-1 Then CuocoCaduto=True
+      XPosCuoco-1
+     End Select
+    EndIf
+   End Select
+  End Select
+  If CuocoCaduto=True
+   While YPosCuoco<#AltezzaMappa-1 AND Mappa(XPosCuoco,YPosCuoco+1)=#BloccoVuoto
+    YPosCuoco+1
+   Wend
+   CuocoCaduto=False:VitaPersa=True
+  EndIf
+  AvvicinaGliOstiliAlCuoco{XPosCuoco,YPosCuoco}
+ Until VitaPersa=True OR FineDelGioco=True OR PaninoCompletato=True
+ DisegnaLaMappa{#Gioco}
+ DisegnaIPanini{XPosCuoco,YPosCuoco}
+ DisegnaIlCuoco{XPosCuoco,YPosCuoco,ViteCuoco}
+ DisegnaGliOstili{}
+ If PaninoCompletato=True Then Delay_ 50:DisegnaIlPanino{}
+ Delay_ 50
+ CancellaLaMappa{}
+ ViteCuoco-1:If ViteCuoco=0 Then FineDelGioco=True
+Until FineDelGioco=True
+Free BitMap #ImmaginePanino:CloseWindow #Finestra
+End
