@@ -1,0 +1,507 @@
+;-> MacBurgher 1.0 by Stefano Maria Regattin
+;i> Wednesday 2nd July 2008
+;m> 3,4,6,7,8,12,13,26,29,30 Jul 2008
+;m> 14,17 Aug 2008
+;m> 15 Oct 2008
+;m> 12,13,14,15,17,18,19,20,24 Jul 2009
+;m> 14,22,23 Dec 2009
+;m> 12 Apr 2010
+;m> 8 May 2010
+;m> 21 Jul 2010
+;m> 9 Mar 2011
+;m> 16 Apr 2011
+;---------------
+AppTitle("MacBurgher 1.0 by Stefano Maria Regattin","Leave the hamburghers?")
+
+Const FormaPiena=1
+Const FormaVuota=0
+Const GrandezzaBlocco=10
+Const TastoFugaASCII=27
+Const TastoCursoreSuASCII=28
+Const TastoCursoreGiuASCII=29
+Const TastoCursoreDestraASCII=30
+Const TastoCursoreSinistraASCII=31
+
+Const BloccoVuoto=0
+Const Piattaforma=1
+Const PaneSopra=2
+Const Lattuga=3
+Const Carne=4
+Const PaneSotto=5
+
+Const Inizio=0
+Const Gioco=1
+
+Const LunghezzaFetta=8
+Const MassimoPanini=8
+
+Global AltezzaMappa=GraphicsHeight()/GrandezzaBlocco
+Global FineDelGioco=False
+Global LarghezzaMappa=GraphicsWidth()/GrandezzaBlocco
+Global Livello
+Global OstileADestra
+Global OstileASinistra
+Global PaniniMessi
+Global PaninoCompletato
+
+Type Ostile
+ Field TempoPepato
+ Field XPos
+ Field YPos
+End Type
+Ostili.Ostile=New Ostile
+
+Type Panino
+ Field XPos
+ Field YPosPaneSopra[LunghezzaFetta-1]
+ Field YPosFinalePaneSopra
+ Field YPosLattuga[LunghezzaFetta-1]
+ Field YPosFinaleLattuga
+ Field YPosCarne[LunghezzaFetta-1]
+ Field YPosFinaleCarne
+ Field YPosPaneSotto[LunghezzaFetta-1]
+ Field YPosFinalePaneSotto
+End Type
+Dim Panini.Panino(MassimoPanini-1)
+For ContoPanini=0 To MassimoPanini-1
+ Panini.Panino(ContoPanini)=New Panino
+Next
+
+Dim Mappa(LarghezzaMappa-1,AltezzaMappa-1)
+
+ImmaginePanino=LoadImage("Hamburgher.JPG")
+
+FineDelGioco=False:Livello=1:ViteCuoco=3
+CreaLaMappa():CreaIPanini()
+Repeat
+ MostraLaMappa(Inizio)
+ VitaPersa=False:XPosCuoco=0:YPosCuoco=AltezzaMappa-1
+ Ostili\XPos=LarghezzaMappa-1:Ostili\YPos=0
+ Repeat
+  MostraLaMappa(Gioco)
+  MostraIPanini(XPosCuoco,YPosCuoco)
+  MostraIlCuoco(XPosCuoco,YPosCuoco,ViteCuoco)
+  MostraGliOstili()
+  FaiCadereLeFette()
+  PaninoCompletato()
+  TastoPremutoASCII=WaitKey()
+  Select TastoPremutoASCII
+   Case TastoFugaASCII
+    FineDelGioco=True
+   Case TastoCursoreSuASCII
+    If YPosCuoco>0 And Mappa(XPosCuoco,YPosCuoco)>BloccoVuoto Then
+     YPosCuoco=YPosCuoco-1
+    EndIf
+   Case TastoCursoreGiuASCII
+    If YPosCuoco<AltezzaMappa-1
+     If Mappa(XPosCuoco,YPosCuoco+1)>BloccoVuoto Then
+      YPosCuoco=YPosCuoco+1
+     ElseIf Mappa(XPosCuoco,YPosCuoco)=Piattaforma Then
+      YPosCuoco=YPosCuoco+1
+      If YPosCuoco<AltezzaMappa-1 And Mappa(XPosCuoco,YPosCuoco)=BloccoVuoto Then
+       CuocoCaduto=True
+      EndIf
+     EndIf
+    EndIf
+   Case TastoCursoreDestraASCII
+    If XPosCuoco<LarghezzaMappa-1
+     PosCuoco=YPosCuoco Mod 3
+     Select PosCuoco
+      Case 0
+       If OstileADestra=False And XPosCuoco<LarghezzaMappa-1
+        XPosCuoco=XPosCuoco+1:If Mappa(XPosCuoco,YPosCuoco+1)=BloccoVuoto Then CuocoCaduto=True
+       EndIf
+      Case 1
+       If Mappa(XPosCuoco+1,YPosCuoco)>BloccoVuoto Then XPosCuoco=XPosCuoco+1
+      Case 2
+       If YPosCuoco<AltezzaMappa-1 Then CuocoCaduto=True
+       XPosCuoco=XPosCuoco+1
+     End Select
+    EndIf
+   Case TastoCursoreSinistraASCII
+    If XPosCuoco>0
+     PosCuoco=YPosCuoco Mod 3
+     Select PosCuoco
+      Case 0
+       If OstileASinistra=False And XPosCuoco>0
+        XPosCuoco=XPosCuoco-1:If Mappa(XPosCuoco,YPosCuoco+1)=BloccoVuoto Then CuocoCaduto=True
+       EndIf
+      Case 1
+       If Mappa(XPosCuoco-1,YPosCuoco)>BloccoVuoto Then XPosCuoco=XPosCuoco-1
+      Case 2
+       If YPosCuoco<AltezzaMappa-1 Then CuocoCaduto=True
+       XPosCuoco=XPosCuoco-1
+     End Select
+    EndIf
+  End Select
+  If CuocoCaduto=True Then
+   While Mappa(XPosCuoco,YPosCuoco+1)=BloccoVuoto
+    YPosCuoco=YPosCuoco+1
+   Wend
+   CuocoCaduto=False:VitaPersa=True
+  EndIf
+  AvvicinaGliOstiliAlCuoco(XPosCuoco,YPosCuoco)
+ Until VitaPersa=True Or FineDelGioco=True Or PaninoCompletato=True
+ If PaninoCompletato=True
+  DrawImage(ImmaginePanino,0,0):WaitKey()
+ Else
+  MostraLaMappa(Gioco)
+  MostraIPanini(XPosCuoco,YPosCuoco)
+  MostraIlCuoco(XPosCuoco,YPosCuoco,ViteCuoco)
+  MostraGliOstili()
+ EndIf
+ Delay(1000)
+ CancellaLaMappa()
+ ViteCuoco=ViteCuoco-1
+ If ViteCuoco=0 Then FineDelGioco=True Else Livello=Livello+1
+Until FineDelGioco=True
+MessaggiDiFineGioco()
+EndGraphics()
+End
+Function AvvicinaGliOstiliAlCuoco(XPosCuoco,YPosCuoco)
+ For Ostili.Ostile=Each Ostile
+  OstileADestra=False:OstileASinistra=False
+  XPosOstile=Ostili\XPos:YPosOstile=Ostili\YPos:YDistanza=YPosOstile-YPosCuoco
+  If YDistanza>0
+   If YPosOstile Mod 3=0
+    XDistanza=LarghezzaMappa
+    For XPosScala=0 To LarghezzaMappa-1
+     If Mappa(XPosScala,YPosOstile+1)=Piattaforma Then
+      If Mappa(XPosScala,YPosOstile)=Piattaforma Then
+       XNuovaDistanza=XPosOstile-XPosScala
+       If Abs(XNuovaDistanza)<Abs(XDistanza) Then XDistanza=XNuovaDistanza
+      EndIf
+     EndIf
+    Next
+    XPiattaforma=XPosOstile-Sgn(XDistanza)
+    If XPiattaforma<0 Then XPiattaforma=0
+    If XPiattaforma>LarghezzaMappa-1 Then XPiattaforma=LarghezzaMappa-1
+    If Mappa(XPiataforma,YPosOstile+1)=Piattaforma
+     Ostili\XPos=Ostili\XPos-Sgn(XDistanza):If XDistanza=0 Then Ostili\YPos=Ostili\YPos-1
+    EndIf
+   Else
+    Ostili\YPos=Ostili\YPos-1
+   EndIf
+  EndIf
+  If YDistanza=0
+   XDistanza=XPosOstile-XPosCuoco
+   If YPosOstile<AltezzaMappa-1
+    If XPosOstile>0 And Mappa(XPosOstile-1,YPosOstile+1)=BloccoVuoto Then XDistanza=LarghezzaMappa
+    If XPosOstile<LarghezzaMappa And Mappa(XPosOstile+1,YPosOstile+1)=BloccoVuoto Then XDistanza=LarghezzaMappa
+   EndIf
+   If XDistanza<LarghezzaMappa And Abs(XDistanza)>1 Then Ostili\XPos=Ostili\XPos-Sgn(XDistanza):XDistanza=Ostili\XPos-XPosCuoco
+   If XDistanza=-1 Then OstileASinistra=True
+   If XDistanza=1 Then OstileADestra=True
+  EndIf
+  If YDistanza<0
+   If YPosOstile Mod 3=0
+    XDistanza=LarghezzaMappa
+    For XPosScala=0 To LarghezzaMappa-1
+     If YPosOstile=AltezzaMappa-3 Then FineScala=2 Else FineScala=3
+     For ScalaSotto=1 To FineScala
+      If Mappa(XPosScala,YPosOstile+ScalaSotto)=Piattaforma
+       Scala=ScalaSotto
+      Else
+       Scala=0
+      EndIf
+     Next
+     If Scala=FineScala
+      XNuovaDistanza=XPosOstile-XPosScala
+      If Abs(XNuovaDistanza)<Abs(XDistanza) Then XDistanza=XNuovaDistanza
+     EndIf
+    Next
+    XPiattaforma=XPosOstile-Sgn(XDistanza)
+    If XPiattaforma<0 Then XPiattaforma=0
+    If XPiattaforma>LarghezzaMappa-1 Then XPiattaforma=LarghezzaMappa-1
+    If Mappa(XPiattaforma,YPosOstile+1)=Piattaforma
+     Ostili\XPos=Ostili\XPos-Sgn(XDistanza):If XDistanza=0 Then Ostili\YPos=Ostili\YPos+1
+    EndIf
+   Else
+    Ostili\YPos=Ostili\YPos+1
+   EndIf
+  EndIf
+ Next
+End Function
+Function CancellaLaMappa()
+ Color(0,0,0)
+ For Quadretto=GrandezzaBlocco/2 To 1 Step -1
+  AllargamentoBlocco=GrandezzaBlocco/2-Quadretto
+  For YMappa=0 To AltezzaMappa-1
+   For XMappa=0 To LarghezzaMappa-1
+    Rect(XMappa*GrandezzaBlocco+AllargamentoBlocco,YMappa*GrandezzaBlocco+AllargamentoBlocco,Quadretto*2,Quadretto*2,FormaVuota)
+   Next
+  Next
+  VWait()
+ Next
+End Function
+Function CreaIPanini()
+ ContoPanini=0:PaniniMessi=(Livello-1) Mod MassimoPanini+1
+ Repeat
+  For YMappa=1 To 16 Step 3
+   For XMappa=0 To LarghezzaMappa-LunghezzaFetta-1
+    If ContoPanini<PaniniMessi
+     Casualita=Rand(127)-Livello:If Casualita<0 Then Casualita=0
+     If Casualita=0
+      If ContoPanini=0
+       FettaPresente=False
+      Else
+       FettaPresente=False
+       For PaninoPrima=0 To ContoPanini-1
+        XPosPanino=Panini(PaninoPrima)\XPos
+        For Fetta=0 To LunghezzaFetta-1
+         If XPosPanino=XMappa And Panini(PaninoPrima)\YPosPaneSopra[Fetta]=YMappa*GrandezzaBlocco-1 Then FettaPresente=True
+         If XPosPanino=XMappa And Panini(PaninoPrima)\YPosLattuga[Fetta]=YMappa*GrandezzaBlocco-1 Then FettaPresente=True
+         If XPosPanino=XMappa And Panini(PaninoPrima)\YPosCarne[Fetta]=YMappa*GrandezzaBlocco-1 Then FettaPresente=True
+         If XPosPanino=XMappa And Panini(PaninoPrima)\YPosPaneSotto[Fetta]=YMappa*GrandezzaBlocco-1 Then FettaPresente=True
+        Next
+       Next
+      EndIf
+      If FettaPresente=False
+       For Fetta=0 To LunghezzaFetta-1
+        Panini(ContoPanini)\YPosPaneSopra[Fetta]=YMappa*GrandezzaBlocco-1
+        Panini(ContoPanini)\YPosLattuga[Fetta]=(YMappa+3)*GrandezzaBlocco-1
+        Panini(ContoPanini)\YPosCarne[Fetta]=(YMappa+6)*GrandezzaBlocco-1
+        Panini(ContoPanini)\YPosPaneSotto[Fetta]=(YMappa+9)*GrandezzaBlocco-1
+        Mappa(XMappa+Fetta,YMappa+10)=BloccoVuoto
+        Mappa(XMappa+Fetta,YMappa+11)=BloccoVuoto
+        Mappa(XMappa+Fetta,YMappa+12)=BloccoVuoto
+        Mappa(XMappa+Fetta,YMappa+13)=BloccoVuoto
+        If YMappa<16 Then Mappa(XMappa+Fetta,YMappa+14)=BloccoVuoto
+       Next
+       Panini(ContoPanini)\YPosFinalePaneSopra=(YMappa+10)*GrandezzaBlocco-1
+       Panini(ContoPanini)\YPosFinaleLattuga=(YMappa+11)*GrandezzaBlocco-1
+       Panini(ContoPanini)\YPosFinaleCarne=(YMappa+12)*GrandezzaBlocco-1
+       Panini(ContoPanini)\YPosFinalePaneSotto=(YMappa+13)*GrandezzaBlocco-1
+       Panini(ContoPanini)\XPos=XMappa
+       ContoPanini=ContoPanini+1
+      EndIf
+     EndIf
+    EndIf
+   Next
+  Next
+ Until ContoPanini=PaniniMessi
+End Function
+Function CreaLaMappa()
+ For YMappa=1 To AltezzaMappa-1
+  Casualita=Rand(Livello)
+  Repeat
+   Scala=0
+   For XMappa=0 To LarghezzaMappa-1
+    If YMappa Mod 3=1 Then
+     If Casualita=1 Then
+      ElementoDellaMappa=Piattaforma
+     Else
+      ElementoDellaMappa=BloccoVuoto
+     EndIf
+    Else
+     If Mappa(XMappa,YMappa-1)=Piattaforma Then
+      If Casualita=2 Then
+       Casualita=1
+      Else
+       Casualita=Rand(8+Livello) Mod 2+1
+      EndIf
+      Select Casualita
+      Case 1
+       ElementoDellaMappa=BloccoVuoto
+      Case 2
+       ElementoDellaMappa=Piattaforma
+      End Select
+     Else
+      ElementoDellaMappa=BloccoVuoto
+     EndIf
+    EndIf
+    Mappa(XMappa,YMappa)=ElementoDellaMappa
+    If YMappa>2 And YMappa Mod 3=0 Then
+     If Mappa(XMappa,YMappa)=Piattaforma Then Scala=Scala+1
+    Else
+     Scala=2
+    EndIf
+   Next
+  Until Scala>1
+ Next
+End Function
+Function FaiCadereLeFette()
+ For ContoPanini=0 To PaniniMessi-1
+  For TipoDiFetta=PaneSotto To PaneSopra Step -1
+   FettaCaduta=0
+   For Fetta=0 To LunghezzaFetta-1
+    Select TipoDiFetta
+    Case PaneSopra
+     YPosFetta=Panini(ContoPanini)\YPosPaneSopra[Fetta]
+     YPosFettaSotto=Panini(ContoPanini)\YPosLattuga[Fetta]
+    Case Lattuga
+     YPosFetta=Panini(ContoPanini)\YPosLattuga[Fetta]
+     YPosFettaSotto=Panini(ContoPanini)\YPosCarne[Fetta]
+    Case Carne
+     YPosFetta=Panini(ContoPanini)\YPosCarne[Fetta]
+     YPosFettaSotto=Panini(ContoPanini)\YPosPaneSotto[Fetta]
+    Case PaneSotto
+     YPosFetta=Panini(ContoPanini)\YPosPaneSotto[Fetta]
+    End Select
+    If (YPosFetta+1)<Panini(ContoPanini)\YPosFinalePaneSopra
+     If ((YPosFetta+1)/GrandezzaBlocco) Mod 3=2 Then FettaCaduta=FettaCaduta+1
+     If ((YPosFetta+1)/GrandezzaBlocco) Mod 3=0
+      If YPosFetta+GrandezzaBlocco=YPosFettaSotto
+       Select TipoDiFetta
+       Case PaneSopra
+        Panini(ContoPanini)\YPosLattuga[Fetta]=Panini(ContoPanini)\YPosLattuga[Fetta]+GrandezzaBlocco/2
+       Case Lattuga
+        Panini(ContoPanini)\YPosCarne[Fetta]=Panini(ContoPanini)\YPosCarne[Fetta]+GrandezzaBlocco/2
+       Case Carne
+        Panini(ContoPanini)\YPosPaneSotto[Fetta]=Panini(ContoPanini)\YPosPaneSotto[Fetta]+GrandezzaBlocco/2
+       End Select
+      EndIf
+      FettaCaduta=FettaCaduta+1
+     EndIf
+    Else
+     FettaCaduta=FettaCaduta+1
+    EndIf
+   Next
+   If FettaCaduta=LunghezzaFetta
+    For Fetta=0 To LunghezzaFetta-1
+     Select TipoDiFetta
+     Case PaneSopra
+      If Panini(ContoPanini)\YPosPaneSopra[Fetta]<Panini(ContoPanini)\YPosFinalePaneSopra
+       Panini(ContoPanini)\YPosPaneSopra[Fetta]=Panini(ContoPanini)\YPosPaneSopra[Fetta]+GrandezzaBlocco/2
+      EndIf
+     Case Lattuga
+      If Panini(ContoPanini)\YPosLattuga[Fetta]<Panini(ContoPanini)\YPosFinaleLattuga
+       Panini(ContoPanini)\YPosLattuga[Fetta]=Panini(ContoPanini)\YPosLattuga[Fetta]+GrandezzaBlocco/2
+      EndIf
+     Case Carne
+      If Panini(ContoPanini)\YPosCarne[Fetta]<Panini(ContoPanini)\YPosFinaleCarne
+       Panini(ContoPanini)\YPosCarne[Fetta]=Panini(ContoPanini)\YPosCarne[Fetta]+GrandezzaBlocco/2
+      EndIf
+     Case PaneSotto
+      If Panini(ContoPanini)\YPosPaneSotto[Fetta]<Panini(ContoPanini)\YPosFinalePaneSotto
+       Panini(ContoPanini)\YPosPaneSotto[Fetta]=Panini(ContoPanini)\YPosPaneSotto[Fetta]+GrandezzaBlocco/2
+      EndIf
+     End Select
+    Next
+    FettaCaduta=0
+   EndIf
+  Next
+ Next
+End Function
+Function MessaggiDiFineGioco()
+ MessaggioDiFineGioco$="*GAMEOVER*"
+ Repeat
+  Cls():Locate(0,GraphicsHeight()-FontHeight())
+  For Carattere=1 To Len(MessaggioDiFineGioco$)
+   Color(Rand(64,255),Rand(64,255),Rand(64,255))
+   Write(Mid$(MessaggioDiFineGioco$,Carattere,1))
+  Next 
+  Color(255,255,255):Write(" press a key to leave...")
+  For YBlocco=0 To FontHeight()-1
+   For XBlocco=0 To StringWidth(MessaggioDiFineGioco$)-1
+    XPosTesto=XBlocco Mod LarghezzaMappa
+    YPosTesto=YBlocco+XBlocco/LarghezzaMappa*FontHeight()
+    ColoreDelTesto=ReadPixel(XBlocco,GraphicsHeight()-FontHeight()+YBlocco) And $FFFFFF
+    Rosso=ColoreDelTesto/65536 Mod 256:Verde=ColoreDelTesto/256 Mod 256:Blu=ColoreDelTesto Mod 256
+    If Rosso>0 Or Verde>0 Or Blu>0 Then
+     Color(Rosso,Verde,Blu)
+     Rect(XPostesto*GrandezzaBlocco+1,YPosTesto*GrandezzaBlocco+1,GrandezzaBlocco-2,GrandezzaBlocco-2,FormaPiena)
+    EndIf
+   Next
+  Next
+  EsciDalCicloDAttesa=False:TempoTrascorso=0
+  Repeat
+   TastoPremuto=GetKey()
+   If TastoPremuto>0 Then EsciDalCicloDAttesa=True
+   TempoTrascorso=TempoTrascorso+1
+   If TempoTrascorso=250 Then EsciDalCicloDAttesa=True
+   VWait()
+  Until EsciDalCicloDAttesa=True
+ Until TastoPremuto>0 
+End Function
+Function MostraGliOstili()
+ For Ostili.Ostile=Each Ostile
+  If OstileASinistra=True Or OstileADestra=True Then
+   Color(0,0,255)
+  Else
+   Color(255,0,0)
+  EndIf 
+  Rect(Ostili\XPos*GrandezzaBlocco,Ostili\YPos*GrandezzaBlocco,GrandezzaBlocco,GrandezzaBlocco,FormaPiena)
+ Next
+End Function
+Function MostraIlCuoco(XPosCuoco,YPosCuoco,ViteCuoco)
+ Color(255,255,255):Rect(XPosCuoco*GrandezzaBlocco,YPosCuoco*GrandezzaBlocco,GrandezzaBlocco,GrandezzaBlocco,FormaPiena)
+ If YPosCuoco>0 Then
+  Locate(XPosCuoco*GrandezzaBlocco,YPosCuoco*GrandezzaBlocco-FontHeight())
+  Write ViteCuoco
+ EndIf
+End Function
+Function MostraIPanini(XPosCuoco,YPosCuoco)
+ For ContoPanini=0 To PaniniMessi-1
+  For Fetta=0 To LunghezzaFetta-1
+   XPosBlocco=Panini(ContoPanini)\XPos+Fetta
+   XPosFetta=XPosBlocco*GrandezzaBlocco
+   YPosFetta=Panini(ContoPanini)\YPosPaneSopra[Fetta]
+   If XPosCuoco=XPosBlocco And YPosCuoco Mod 3=0
+    If YPosFetta>YPosCuoco*GrandezzaBlocco-1 And YPosFetta-YPosCuoco*GrandezzaBlocco-1<GrandezzaBlocco+GrandezzaBlocco/2
+     Panini(ContoPanini)\YPosPaneSopra[Fetta]=Panini(ContoPanini)\YPosPaneSopra[Fetta]+GrandezzaBlocco/2
+    EndIf
+   EndIf
+   Color(255,191,127)
+   Rect(XPosFetta,YPosFetta,GrandezzaBlocco,GrandezzaBlocco,FormaPiena)
+   YPosFetta=Panini(ContoPanini)\YPosLattuga[Fetta]
+   If XPosCuoco=XPosBlocco And YPosCuoco Mod 3=0
+    If YPosFetta>YPosCuoco*GrandezzaBlocco-1 And YPosFetta-YPosCuoco*GrandezzaBlocco-1<GrandezzaBlocco+GrandezzaBlocco/2
+     Panini(ContoPanini)\YPosLattuga[Fetta]=Panini(ContoPanini)\YPosLattuga[Fetta]+GrandezzaBlocco/2
+    EndIf
+   EndIf
+   Color(63,191,63)
+   Rect(XPosFetta,YPosFetta,GrandezzaBlocco,GrandezzaBlocco,FormaPiena)
+   YPosFetta=Panini(ContoPanini)\YPosCarne[Fetta]
+   If XPosCuoco=XPosBlocco And YPosCuoco Mod 3=0
+    If YPosFetta>YPosCuoco*GrandezzaBlocco-1 And YPosFetta-YPosCuoco*GrandezzaBlocco-1<GrandezzaBlocco+GrandezzaBlocco/2
+     Panini(ContoPanini)\YPosCarne[Fetta]=Panini(ContoPanini)\YPosCarne[Fetta]+GrandezzaBlocco/2
+    EndIf
+   EndIf
+   Color(191,63,63)
+   Rect(XPosFetta,YPosFetta,GrandezzaBlocco,GrandezzaBlocco,FormaPiena)
+   YPosFetta=Panini(ContoPanini)\YPosPaneSotto[Fetta]
+   If XPosCuoco=XPosBlocco And YPosCuoco Mod 3=0
+    If YPosFetta>YPosCuoco*GrandezzaBlocco-1 And YPosFetta-YPosCuoco*GrandezzaBlocco-1<GrandezzaBlocco+GrandezzaBlocco/2
+     Panini(ContoPanini)\YPosPaneSotto[Fetta]=Panini(ContoPanini)\YPosPaneSotto[Fetta]+GrandezzaBlocco/2
+    EndIf
+   EndIf
+   Color(191,127,63)
+   Rect(XPosFetta,YPosFetta,GrandezzaBlocco,GrandezzaBlocco,FormaPiena)
+  Next
+ Next
+End Function
+Function MostraLaMappa(ModoDisegno)
+ For Quadretto=1 To GrandezzaBlocco/2
+  AllargamentoBlocco=GrandezzaBlocco/2-Quadretto
+  For YMappa=0 To AltezzaMappa-1
+   For XMappa=0 To LarghezzaMappa-1
+    ElementoDellaMappa=Mappa(XMappa,YMappa)
+    Select ElementoDellaMappa
+     Case BloccoVuoto
+      Color(0,0,0)
+     Case Piattaforma
+      Color(63,63,127)
+    End Select
+    If ModoDisegno=Inizio Then Rect(XMappa*GrandezzaBlocco+AllargamentoBlocco,YMappa*GrandezzaBlocco+AllargamentoBlocco,Quadretto*2,Quadretto*2,FormaVuota)
+    If ModoDisegno=Gioco Then Rect(XMappa*GrandezzaBlocco,YMappa*GrandezzaBlocco,GrandezzaBlocco,GrandezzaBlocco,FormaPiena)
+   Next
+  Next
+  If ModoDisegno=Inizio Then VWait()
+  If ModoDisegno=Gioco Then Exit
+ Next
+End Function
+Function PaninoCompletato()
+ PaninoCompletato=False:PaniniCompletati=0
+ For ContoPanini=0 To PaniniMessi-1
+  FetteAPosto=0
+  For Fetta=0 To LunghezzaFetta-1
+   If Panini(ContoPanini)\YPosPaneSopra[Fetta]=Panini(ContoPanini)\YPosFinalePaneSopra Then FetteAPosto=FetteAPosto+1
+   If Panini(ContoPanini)\YPosLattuga[Fetta]=Panini(ContoPanini)\YPosFinaleLattuga Then FetteAPosto=FetteAPosto+1
+   If Panini(ContoPanini)\YPosCarne[Fetta]=Panini(ContoPanini)\YPosFinaleCarne Then FetteAPosto=FetteAPosto+1
+   If Panini(ContoPanini)\YPosPaneSotto[Fetta]=Panini(ContoPanini)\YPosFinalePaneSotto Then FetteAPosto=FetteAPosto+1
+  Next
+  If FetteAPosto=LunghezzaFetta*4 Then PaninoCompletato=True:PaniniCompletati=PaniniCompletati+1
+ Next
+ If PaniniCompletati=PaniniMessi Then FineDelGioco=True
+End Function
