@@ -1,0 +1,1524 @@
+;-> Orologio by Stefano Maria Regattin
+;d> 9 ottobre 1998 da Clock
+;m> 10,11,16,17,19,24,29 ottobre 1998
+;m> 4,6 novembre 1998
+;m> 13,14,23 dicembre 1998
+;m> 3 gennaio 1999
+;m> 9,12 marzo 1999
+;m> 25,26 settembre 1999
+;m> 1,2,3,5,6,7,8,9,10,11,22,27,28 febbraio 2000
+;m> 2,3,4,6,9,10,30,31 marzo 2000
+;m> 6,9,16,25,30 aprile 2000
+;m> 1,7,9,21 maggio 2000
+;m> 2,15 giugno 2000
+;m> 12,13 agosto 2000
+;m> 16 novembre 2000
+;m> 1,29,30 gennaio 2001
+;m> 25 Aprile 2001
+;m> 16 luglio 2001
+;m> 8,30 giugno 2002
+;m> 8,25 luglio 2002
+;m> 3,22 agosto 2002
+;m> 31 dicembre 2002
+;m> 23,24 marzo 2004
+;m> 16,17,18 luglio 2004
+;m> 5,6,7 ottobre 2005
+;m> 19 giugno 2006
+;m> 1,2,4,6,7,8,9,10,14,15,18 marzo 2007
+;m> 6,7 giugno 2007
+;m> 26 ottobre 2007
+;m> 1 gennaio 2008
+;m> 18 giugno 2008
+;m> 25,26,27 maggio 2009
+;m> 21,22 gennaio 2010
+;m> 4 aprile 2010, domenica di Pasqua
+;m> 1 maggio 2010, Festa Mondiale Del Lavoro
+;m> 2,4 maggio 2010
+;-------------------
+
+;---------------------------------------------------------------------
+;le seguenti linee servono per la coretta gestione della versione del
+;programma
+;the following lines are for the correct handling of the program version
+;------------------------------------------------------------------------
+JMP InizioDelProgramma
+
+;-----------------------
+;versione del programma
+;program version
+;----------------
+Dc.b "$VER: Orologio 3.3 (4.5.2010)"
+
+Even
+
+InizioDelProgramma
+
+;--------------------------------------------------
+;le seguenti costanti indicano il tipo di finestra
+;the following constants state the window's kind
+;------------------------------------------------
+
+;window sizing gadget
+#BottoneRidimensionaFinestra=1
+
+;draggable window
+#FinestraMovibile=2
+
+;window depth gadget
+#BottoneNascondiFinestra=4
+
+;close gadget
+#BottoneChiudiFinestra=8
+
+;sizing window right border (you must set gimme-zero-zero to use it)
+#BordoDestraFinestraRidimensionabile=16
+
+;sizing window bottom border (you must set gimme-zero-zero to use it)
+#BordoBassoFinestraRidimensionabile=32
+
+;backdrop window
+#FinestraDiSfondo=256
+
+;gimme-zero-zero window
+#FinestraConMemoriaBottoni=1024
+
+;borderless window
+#FinestraSenzaBordi=2048
+
+;window active
+#FinestraAttivata=4096
+
+;--------------------------------------------------------
+;le seguenti costanti indicano gli eventi delle finestre
+;the following constants state window events
+;--------------------------------------------
+
+;you have changed the window sizes
+#HaiCambiatoLeDimensioniDellaFinestra=2
+
+;you have pressed a mouse button
+#HaiPremutoUnTastoDelTopo=8
+
+;you have moved the mouse
+#HaiMossoIlTopo=16
+
+;you have pressed a gadget
+#HaiPremutoUnBottone=32
+
+;you have released a gadget
+#HaiRilasciatoUnBottone=64
+
+;you have activated a menu
+#HaiAttivatoIlMenu=256
+
+;you have closed the window
+#HaiChiusoLaFinestra=512
+
+;you have pressed a key
+#HaiPremutoUnTasto=1024
+
+;you have activated the window
+#HaiAttivatoLaFinestra=262144
+
+;---------------------------------------------------------
+;le seguenti costanti indicano il tipo di tasto del mouse
+;the following constants state the mouse button kinds
+;-----------------------------------------------------
+
+;right mouse button pressed
+#TastoSinistroDelTopoPremuto=1
+
+;left mouse button pressed
+#TastoDestroDelTopoPremuto=2
+
+;-------------------------------------------------
+;le seguenti costanti indicano il tipo di oggetti
+;the following constants state the object kinds
+;-----------------------------------------------
+
+;workbench bitmap identifier number
+#AreaGraficaWorkbench=0
+
+;button height plus one
+#AltezzaBottoniPiuUno=13
+
+;workbench screen identifier number
+#SchermoWorkbench=0
+
+;clock window
+#FinOrologio=0
+
+;parameters window
+#FinParam=1
+
+;colours window
+#FinColori=2
+
+;credits window
+#FinCrediti=1
+
+;parameters window gadget list
+#ListaBotParam=0
+
+;font for the clock
+#FonteOrologio=0
+
+;font for the other windows
+#FonteTopaz=1
+
+;other windows font height
+#GrandezzaFonteTopaz=8
+
+;clock window background; the value is 8 because shapes 0->7 are used by the
+;parameters window
+#SfondoFinOrologio=8
+
+;text with no background
+#TestoSenzaSfondo=0
+
+;text with background
+#TestoConSfondo=1
+
+;bitmap for the parameters window arrows
+#AreaGraficaFrecce=1
+
+;minimum workbench screen height
+#AltezzaMinimaWB=200
+
+;normal window properties
+#TipoFinNorm=#FinestraMovibile+#BottoneChiudiFinestra+#FinestraConMemoriaBottoni+#FinestraAttivata
+
+;credit window properties
+#TipoFinCrediti=#FinestraConMemoriaBottoni+#FinestraAttivata
+
+
+DEFTYPE .b AltezzaFonteOrologio,AltezzaFonteOrologioRegistrata,AltezzaTitoli,BordoAltoFinestraNormale
+DEFTYPE .b BordoAltoFinestraRidotta,BordoSinistraFinestraNormale,BordoSinistraFinestraRidotta,StatoAllarme,TooltypeScritti
+
+DEFTYPE .w
+
+Statement AggiustaDimensioniFinestraOrologio{}
+SHARED AltezzaFonteOrologio
+SHARED Angolo$
+SHARED BordoAltoFinestraNormale
+SHARED BordoAltoFinestraRidotta
+SHARED BordoSinistraFinestraNormale
+SHARED BordoSinistraFinestraRidotta
+SHARED LunghezzaDataDiOggi
+SHARED ModoFinestra$
+SHARED ModoOrologio$
+SHARED XLunFinOrologio
+SHARED XLunSchermoWorkbench
+SHARED XPosFinOrologio
+SHARED XPosFinOrologioAngoloOpposto
+SHARED YLunFinOrologio
+SHARED YLunSchermoWorkbench
+SHARED YPosFinOrologio
+SHARED YPosFinOrologioAngoloOpposto
+
+ If ModoFinestra$="NORMAL"
+  XLunFinOrologio=BordoSinistraFinestraNormale+LunghezzaDataDiOggi+BordoAltoFinestraNormale+BordoSinistraFinestraRidotta
+  YLunFinOrologio=BordoAltoFinestraNormale+AltezzaFonteOrologio+BordoAltoFinestraRidotta
+ EndIf
+ If ModoFinestra$="LITE"
+  XLunFinOrologio=BordoSinistraFinestraRidotta+LunghezzaDataDiOggi+BordoSinistraFinestraRidotta
+  YLunFinOrologio=BordoAltoFinestraRidotta+AltezzaFonteOrologio+BordoAltoFinestraRidotta
+ EndIf
+ If ModoFinestra$="INVISIBLE"
+  XLunFinOrologio=1+LunghezzaDataDiOggi+1
+  YLunFinOrologio=1+AltezzaFonteOrologio+1
+ EndIf
+
+ If ModoOrologio$="BOTH"
+  YLunFinOrologio+1+AltezzaFonteOrologio
+  If ModoFinestra$="INVISIBLE" Then YLunFinOrologio+2
+ EndIf
+
+ Select Angolo$
+ Case "TOP-RIGHT"
+  If XPosFinOrologio+(XLunFinOrologio-1)<>XPosFinOrologioAngoloOpposto
+   XPosFinOrologio=XPosFinOrologioAngoloOpposto-(XLunFinOrologio-1)
+  EndIf
+ Case "BOTTOM-RIGHT"
+  If XPosFinOrologio+(XLunFinOrologio-1)<>XPosFinOrologioAngoloOpposto
+   XPosFinOrologio=XPosFinOrologioAngoloOpposto-(XLunFinOrologio-1)
+  EndIf
+  If YPosFinOrologio+(YLunFinOrologio-1)<>YPosFinOrologioAngoloOpposto
+   YPosFinOrologio=YPosFinOrologioAngoloOpposto-(YLunFinOrologio-1)
+  EndIf
+ Case "BOTTOM-LEFT"
+  If YPosFinOrologio+(YLunFinOrologio-1)<>YPosFinOrologioAngoloOpposto
+   YPosFinOrologio=YPosFinOrologioAngoloOpposto-(YLunFinOrologio-1)
+  EndIf
+ End Select
+
+ If XPosFinOrologio+XLunFinOrologio-1>XLunSchermoWorkbench-1 Then XPosFinOrologio=XLunSchermoWorkbench-XLunFinOrologio
+ If XPosFinOrologio<0 Then XPosFinOrologio=0
+ If XLunFinOrologio>XLunSchermoWorkbench Then XLunFinOrologio=XLunSchermoWorkbench
+ If YPosFinOrologio+YLunFinOrologio-1>YLunSchermoWorkbench-1 Then YPosFinOrologio=YLunSchermoWorkbench-YLunFinOrologio
+ If YPosFinOrologio<0 Then YPosFinOrologio=0
+ If YLunFinOrologio>YLunSchermoWorkbench Then YLunFinOrologio=YLunSchermoWorkbench
+End Statement
+
+Statement ApriFinestraOrologio{}
+SHARED ColoreChiaro
+SHARED ColoreScuro
+SHARED ColoreBordoOrologio
+SHARED ModoFinestra$
+SHARED XLunFinOrologio
+SHARED XPosFinOrologio
+SHARED YLunFinOrologio
+SHARED YPosFinOrologio
+
+ If ModoFinestra$="NORMAL"
+  TipoFinOrologio.l=#BottoneRidimensionaFinestra+#FinestraMovibile+#BottoneChiudiFinestra+#FinestraConMemoriaBottoni
+  TipoFinOrologio+#FinestraAttivata
+  TitoloFinOrologio$="Orologio"
+ EndIf
+
+ If ModoFinestra$="LITE" Then TipoFinOrologio=#FinestraConMemoriaBottoni:TitoloFinOrologio$=""
+ If ModoFinestra$="INVISIBLE" Then TipoFinOrologio=#FinestraSenzaBordi:TitoloFinOrologio$=""
+
+ Window #FinOrologio,XPosFinOrologio,YPosFinOrologio,XLunFinOrologio,YLunFinOrologio,TipoFinOrologio,"",ColoreScuro,ColoreChiaro
+ WTitle TitoloFinOrologio$,"by Stefano Maria Regattin, http://xoomer.virgilio.it/aregat/"
+ If ModoFinestra$<>"INVISIBLE" Then WCls ColoreBordoOrologio
+ WindowFont #FonteOrologio
+ Menus Off
+End Statement
+
+Statement LeggiTooltype{}
+SHARED AltezzaFonteOrologio
+SHARED AltezzaFonteOrologioRegistrata
+SHARED Angolo$
+SHARED AngoloRegistrato$
+SHARED ColoreBordoOrologio
+SHARED ColoreBordoOrologioRegistrato
+SHARED ColoreTestoOrologio
+SHARED ColoreTestoOrologioRegistrato
+SHARED FonteOrologio$
+SHARED FonteOrologioRegistrato$
+SHARED IconaOrologio$
+SHARED ModoFinestra$
+SHARED ModoFinestraRegistrato$
+SHARED ModoOrologio$
+SHARED ModoOrologioRegistrato$
+SHARED RitardoCattura
+SHARED XPosFinOrologio
+SHARED XPosFinOrologioRegistrata
+SHARED YPosFinOrologio
+SHARED YPosFinOrologioRegistrata
+ TooltypeLetti.l=GetIconObject(IconaOrologio$)
+ If TooltypeLetti>0
+  NuovaFonteOrologio$=FindToolValue("FONTNAME")
+  NuovaAltezzaFonteOrologio$=FindToolValue("FONTSIZE")
+  NuovaXPosFinOrologio$=FindToolValue("WINDOWX")
+  NuovaYPosFinOrologio$=FindToolValue("WINDOWY")
+  NuovoAngolo$=FindToolValue("CORNER")
+  NuovoColoreTestoOrologio$=FindToolValue("TEXTCOLOR")
+  NuovoColoreBordoOrologio$=FindToolValue("BACKCOLOR")
+  NuovoModoFinestra$=FindToolValue("WINDOW")
+  NuovoModoOrologio$=FindToolValue("MODE")
+  NuovoRitardoCattura$=FindToolValue("GRABDELAY")
+
+  If NuovaFonteOrologio$<>""
+   FonteOrologioRegistrato$=NuovaFonteOrologio$
+   FonteOrologio$=NuovaFonteOrologio$
+  EndIf
+
+  If NuovaAltezzaFonteOrologio$<>""
+   AltezzaFonteOrologioRegistrata=Val(NuovaAltezzaFonteOrologio$)
+   AltezzaFonteOrologio=Val(NuovaAltezzaFonteOrologio$)
+  EndIf
+
+  If NuovaXPosFinOrologio$<>""
+   XPosFinOrologioRegistrata=Val(NuovaXPosFinOrologio$)
+   XPosFinOrologio=Val(NuovaXPosFinOrologio$)
+  EndIf
+
+  If NuovaYPosFinOrologio$<>""
+   YPosFinOrologioRegistrata=Val(NuovaYPosFinOrologio$)
+   YPosFinOrologio=Val(NuovaYPosFinOrologio$)
+  EndIf
+
+  If NuovoAngolo$<>""
+   AngoloRegistrato$=NuovoAngolo$
+   Angolo$=NuovoAngolo$
+  EndIf
+
+  If NuovoColoreTestoOrologio$<>""
+   ColoreTestoOrologioRegistrato=Val(NuovoColoreTestoOrologio$)
+   ColoreTestoOrologio=Val(NuovoColoreTestoOrologio$)
+  EndIf
+
+  If NuovoColoreBordoOrologio$<>""
+   ColoreBordoOrologioRegistrato=Val(NuovoColoreBordoOrologio$)
+   ColoreBordoOrologio=Val(NuovoColoreBordoOrologio$)
+  EndIf
+
+  If NuovoModoFinestra$<>""
+   ModoFinestraRegistrato$=NuovoModoFinestra$
+   ModoFinestra$=NuovoModoFinestra$
+  EndIf
+
+  If NuovoModoOrologio$<>""
+   ModoOrologioRegistrato$=NuovoModoOrologio$
+   ModoOrologio$=NuovoModoOrologio$
+  EndIf
+
+  If NuovoRitardoCattura$<>"" Then RitardoCattura=Val(NuovoRitardoCattura$)
+
+  FreeIconObject
+ EndIf
+End Statement
+
+Statement ScriviTooltype{}
+SHARED AltezzaFonteOrologio
+SHARED AltezzaFonteOrologioRegistrata
+SHARED Angolo$
+SHARED AngoloRegistrato$
+SHARED ColoreBordoOrologio
+SHARED ColoreBordoOrologioRegistrato
+SHARED ColoreTestoOrologio
+SHARED ColoreTestoOrologioRegistrato
+SHARED FonteOrologio$
+SHARED FonteOrologioRegistrato$
+SHARED IconaOrologio$
+SHARED ModoFinestra$
+SHARED ModoOrologio$
+SHARED ModoFinestraRegistrato$
+SHARED ModoOrologioRegistrato$
+SHARED RitardoCattura
+SHARED XPosFinOrologio
+SHARED XPosFinOrologioAngoloOpposto
+SHARED XPosFinOrologioRegistrata
+SHARED YPosFinOrologio
+SHARED YPosFinOrologioAngoloOpposto
+SHARED YPosFinOrologioRegistrata
+SHARED TooltypeScritti
+ TooltypeLetti.l=GetIconObject(IconaOrologio$)
+ If TooltypeLetti>0
+  If FindToolType("DONOTWAIT")=False Then NewToolType "DONOTWAIT",""
+
+  If FindToolType("FONTNAME")=True
+   SetToolValue "FONTNAME",FonteOrologio$
+  Else
+   NewToolType "FONTNAME",FonteOrologio$
+  EndIf
+
+  If FindToolType("FONTSIZE")=True
+   SetToolValue "FONTSIZE",Str$(AltezzaFonteOrologio)
+  Else
+   NewToolType "FONTSIZE",Str$(AltezzaFonteOrologio)
+  EndIf
+
+  Select Angolo$
+  Case "TOP-LEFT"
+   If FindToolType("WINDOWX")=True
+    SetToolValue "WINDOWX",Str$(XPosFinOrologio)
+   Else
+    NewToolType "WINDOWX",Str$(XPosFinOrologio)
+   EndIf
+
+   If FindToolType("WINDOWY")=True
+    SetToolValue "WINDOWY",Str$(YPosFinOrologio)
+   Else
+    NewToolType "WINDOWY",Str$(YPosFinOrologio)
+   EndIf
+  Case "TOP-RIGHT"
+   If FindToolType("WINDOWX")=True
+    SetToolValue "WINDOWX",Str$(XPosFinOrologioAngoloOpposto)
+   Else
+    NewToolType "WINDOWX",Str$(XPosFinOrologioAngoloOpposto)
+   EndIf
+
+   If FindToolType("WINDOWY")=True
+    SetToolValue "WINDOWY",Str$(YPosFinOrologio)
+   Else
+    NewToolType "WINDOWY",Str$(YPosFinOrologio)
+   EndIf
+  Case "BOTTOM-RIGHT"
+   If FindToolType("WINDOWX")=True
+    SetToolValue "WINDOWX",Str$(XPosFinOrologioAngoloOpposto)
+   Else
+    NewToolType "WINDOWX",Str$(XPosFinOrologioAngoloOpposto)
+   EndIf
+
+   If FindToolType("WINDOWY")=True
+    SetToolValue "WINDOWY",Str$(YPosFinOrologioAngoloOpposto)
+   Else
+    NewToolType "WINDOWY",Str$(YPosFinOrologioAngoloOpposto)
+   EndIf
+  Case "BOTTOM-LEFT"
+   If FindToolType("WINDOWX")=True
+    SetToolValue "WINDOWX",Str$(XPosFinOrologio)
+   Else
+    NewToolType "WINDOWX",Str$(XPosFinOrologio)
+   EndIf
+
+   If FindToolType("WINDOWY")=True
+    SetToolValue "WINDOWY",Str$(YPosFinOrologioAngoloOpposto)
+   Else
+    NewToolType "WINDOWY",Str$(YPosFinOrologioAngoloOpposto)
+   EndIf
+  End Select
+
+  If FindToolType("CORNER")=True
+   SetToolValue "CORNER",Angolo$
+  Else
+   NewToolType "CORNER",Angolo$
+  EndIf
+
+  If FindToolType("TEXTCOLOR")=True
+   SetToolValue "TEXTCOLOR",Str$(ColoreTestoOrologio)
+  Else
+   NewToolType "TEXTCOLOR",Str$(ColoreTestoOrologio)
+  EndIf
+
+  If FindToolType("BACKCOLOR")=True
+   SetToolValue "BACKCOLOR",Str$(ColoreBordoOrologio)
+  Else
+   NewToolType "BACKCOLOR",Str$(ColoreBordoOrologio)
+  EndIf
+
+  If FindToolType("WINDOW")=True
+   SetToolValue "WINDOW",ModoFinestra$
+  Else
+   NewToolType "WINDOW",ModoFinestra$
+  EndIf
+
+  If FindToolType("MODE")=True
+   SetToolValue "MODE",ModoOrologio$
+  Else
+   NewToolType "MODE",ModoOrologio$
+  EndIf
+
+  If FindToolType("GRABDELAY")=True
+   SetToolValue "GRABDELAY",UStr$(RitardoCattura)
+  Else
+   NewToolType "GRABDELAY",UStr$(RitardoCattura)
+  EndIf
+
+  TooltypeScritti=PutIconObject(IconaOrologio$)
+  If TooltypeScritti=True
+   FonteOrologioRegistrato$=FonteOrologio$
+   AltezzaFonteOrologioRegistrata=AltezzaFonteOrologio
+   AngoloRegistrato$=Angolo$
+   Select Angolo$
+   Case "TOP-LEFT"
+    XPosFinOrologioRegistrata=XPosFinOrologio
+    YPosFinOrologioRegistrata=YPosFinOrologio
+   Case "TOP-RIGHT"
+    XPosFinOrologioRegistrata=XPosFinOrologioAngoloOpposto
+    YPosFinOrologioRegistrata=YPosFinOrologio
+   Case "BOTTOM-RIGHT"
+    XPosFinOrologioRegistrata=XPosFinOrologioAngoloOpposto
+    YPosFinOrologioRegistrata=YPosFinOrologioAngoloOpposto
+   Case "BOTTOM-LEFT"
+    XPosFinOrologioRegistrata=XPosFinOrologioAngolo
+    YPosFinOrologioRegistrata=YPosFinOrologioAngoloOpposto
+   End Select
+   ColoreTestoOrologioRegistrato=ColoreTestoOrologio
+   ColoreBordoOrologioRegistrato=ColoreBordoOrologio
+   ModoFinestraRegistrato$=ModoFinestra$
+   ModoOrologioRegistrato$=ModoOrologio$
+  EndIf
+
+  FreeIconObject
+
+ EndIf
+End Statement
+
+Statement CercaFonteDiCaratteri{}
+SHARED NuovaFonteOrologio$
+SHARED AltezzaFonteOrologio
+ NEWTYPE .FontInfo
+  Nome$
+  Altezza.w
+  Stile.b
+  Segnalatori
+  PennaUno
+  PennaDue
+  ModoDisegno
+  Pad
+ End NEWTYPE
+
+ *Font.FontInfo=ASLFontRequest(0)
+
+ If *Font<>0
+  NuovaFonteOrologio$=*Font\Nome
+  AltezzaFonteOrologio=*Font\Altezza
+ EndIf
+End Statement
+
+Statement CambiaColori{}
+SHARED BordoAltoFinestraNormale
+SHARED BordoAltoFinestraRidotta
+SHARED ColoreChiaro
+SHARED ColoreScuro
+SHARED BordoSinistraFinestraNormale
+SHARED BordoSinistraFinestraRidotta
+SHARED ColoreBordoOrologio
+SHARED ColoreTestoOrologio
+SHARED ColoriWorkbench
+SHARED XLunSchermoWorkbench
+SHARED YLunSchermoWorkbench
+ AltezzaColore.b=YLunSchermoWorkbench/#AltezzaMinimaWB*8
+ SpazioColori=Max(ColoriWorkbench/16,1)*AltezzaColore
+ LarghezzaColore.b=AltezzaColore*Max(16/ColoriWorkbench,1)
+ XPosFinColori=WindowX
+ YPosFinColori=WindowY
+ XLunFinColori=BordoSinistraFinestraNormale+AltezzaColore*16+BordoSinistraFinestraRidotta
+ YLunFinColori=BordoAltoFinestraNormale+SpazioColori+1+#AltezzaBottoniPiuUno*2+BordoAltoFinestraRidotta
+
+ If XPosFinColori+XLunFinColori>XLunSchermoWorkbench Then XPosFinColori=XLunSchermoWorkbench-XLunFinColori
+ If YPosFinColori+YLunFinColori>YLunSchermoWorkbench Then YPosFinColori=YLunSchermoWorkbench-YLunFinColori
+
+ Window #FinColori,XPosFinColori,YPosFinColori,XLunFinColori,YLunFinColori,#TipoFinNorm,"",ColoreScuro,ColoreChiaro
+ WTitle "Colori","Cambia i colori dell'orologio"
+ Use IntuiFont #FonteTopaz
+ WindowFont #FonteTopaz
+ Menus Off
+
+ XFinaleBordo=InnerWidth-8
+ GadgetBorder 4,SpazioColori+3,XFinaleBordo,8
+ GadgetBorder 4,SpazioColori+3+#AltezzaBottoniPiuUno,XFinaleBordo,8
+
+ For Colore=0 To ColoriWorkbench-1
+  XColore=Colore MOD 16*LarghezzaColore:YColore=Colore/16*AltezzaColore
+  WBox XColore,YColore,XColore+LarghezzaColore-1,YColore+AltezzaColore-1,Colore
+ Next
+
+ Repeat
+  WBox 4,SpazioColori+3,XFinaleBordo+3,SpazioColori+10,ColoreTestoOrologio
+  WLocate 4,SpazioColori+3:WColour ColoreBordoOrologio,ColoreTestoOrologio:Print ColoreTestoOrologio
+  WBox 4,SpazioColori+16,XFinaleBordo+3,SpazioColori+23,ColoreBordoOrologio
+  WLocate 4,SpazioColori+3+#AltezzaBottoniPiuUno:WColour ColoreTestoOrologio,ColoreBordoOrologio:Print ColoreBordoOrologio
+
+  EventoFinestra.l=WaitEvent
+
+  Select EventoFinestra
+  Case #HaiPremutoUnTastoDelTopo
+   If WMouseX>-1 AND WMouseY>-1 AND WMouseX<AltezzaColore*16 AND WMouseY<SpazioColori
+    Colore=WMouseY/AltezzaColore*16+WMouseX/LarghezzaColore
+    Select MButtons
+    Case #TastoSinistroDelTopoPremuto
+     If Colore<>ColoreBordoOrologio Then ColoreTestoOrologio=Colore
+    Case #TastoDestroDelTopoPremuto
+     If Colore<>ColoreTestoOrologio Then ColoreBordoOrologio=Colore
+    End Select
+   EndIf
+  End Select
+ Until EventoFinestra=#HaiChiusoLaFinestra
+ CloseWindow #FinColori
+ Use Window #FinParam
+End Statement
+
+Statement Parametri{}
+SHARED Angolo$
+SHARED AngoloRegistrato$
+SHARED AltezzaFonteOrologio
+SHARED AltezzaFonteOrologioRegistrata
+SHARED BordoAltoFinestraNormale
+SHARED BordoAltoFinestraRidotta
+SHARED ColoreChiaro
+SHARED BordoSinistraFinestraNormale
+SHARED BordoSinistraFinestraRidotta
+SHARED ColoreScuro
+SHARED ColoreBordoOrologio
+SHARED ColoreBordoOrologioRegistrato
+SHARED ColoreTestoOrologio
+SHARED ColoreTestoOrologioRegistrato
+SHARED FonteOrologio$
+SHARED FonteOrologioRegistrato$
+SHARED ModoFinestra$
+SHARED ModoOrologio$
+SHARED ModoFinestraRegistrato$
+SHARED ModoOrologioRegistrato$
+SHARED NuovaFonteOrologio$
+SHARED OraAllarme$
+SHARED OraDiOggi$
+SHARED StatoAllarme
+SHARED TooltypeScritti
+SHARED XLunFinOrologio
+SHARED XLunSchermoWorkbench
+SHARED XPosFinOrologio
+SHARED XPosFinOrologioAngoloOpposto
+SHARED XPosFinOrologioRegistrata
+SHARED YLunFinOrologio
+SHARED YLunSchermoWorkbench
+SHARED YPosFinOrologio
+SHARED YPosFinOrologioAngoloOpposto
+SHARED YPosFinOrologioRegistrata
+ Dim Freccia(5)
+ BitMap #AreaGraficaFrecce,32,16,2
+ Freccia(0)=0:Freccia(1)=0
+ Freccia(2)=7:Freccia(3)=0
+ Freccia(4)=0:Freccia(5)=7
+ Polyf 3,&Freccia(0),1
+ GetaShape 0,0,0,8,8
+ XFlip 0
+ Blit 0,8,0
+ GetaShape 0,0,0,8,8
+ GetaShape 1,8,0,8,8
+ YFlip 1
+ Blit 1,16,0
+ GetaShape 1,8,0,8,8
+ GetaShape 2,16,0,8,8
+ XFlip 2
+ Blit 2,24,0
+ GetaShape 2,16,0,8,8
+ GetaShape 3,24,0,8,8
+ Freccia(0)=0:Freccia(1)=8
+ Freccia(2)=7:Freccia(3)=8
+ Freccia(4)=0:Freccia(5)=15
+ Polyf 3,&Freccia(0),2
+ GetaShape 4,0,8,8,8
+ XFlip 4
+ Blit 4,8,8
+ GetaShape 4,0,8,8,8
+ GetaShape 5,8,8,8,8
+ YFlip 5
+ Blit 5,16,8
+ GetaShape 5,8,8,8,8
+ GetaShape 6,16,8,8,8
+ XFlip 6
+ Blit 6,24,8
+ GetaShape 6,16,8,8,8
+ GetaShape 7,24,8,8,8
+
+ Free BitMap #AreaGraficaFrecce
+
+ Use IntuiFont #FonteTopaz
+
+ StringGadget #ListaBotParam,  1,  1,  0, 0,6,6*8
+ StringGadget #ListaBotParam,  1, 14,  0, 1,25,106
+ StringGadget #ListaBotParam, 75,  1,  0, 2,4,4*8
+ StringGadget #ListaBotParam,  9, 27,  0, 3,5,5*8
+ StringGadget #ListaBotParam, 67, 27,  0, 4,5,5*8
+ StringGadget #ListaBotParam,  9, 62,  0, 5,5,5*8
+ StringGadget #ListaBotParam, 67, 62,  0, 6,5,5*8
+ ShapeGadget  #ListaBotParam, 92, 42,512, 7,0,4
+ ShapeGadget  #ListaBotParam,103, 42,512, 8,1,5
+ ShapeGadget  #ListaBotParam,103, 51,512, 9,2,6
+ ShapeGadget  #ListaBotParam, 92, 51,512,10,3,7
+ TextGadget   #ListaBotParam, 58,  1,  1,11,"A"
+ TextGadget   #ListaBotParam,  1, 75,  0,12,"Solo la data | Solo l'ora  | Data ed ora "
+ TextGadget   #ListaBotParam,  1, 88,  0,13,"Fines normale|Fines ridotta|Fines invisib"
+ TextGadget   #ListaBotParam,  1, 101, 0,14,"    Colori   "
+ TextGadget   #ListaBotParam,  1, 114, 0,15,"*** Salva ***"
+
+ XPosFinOrologio=WindowX-WLeftOff
+ YPosFinOrologio=WindowY-WTopOff
+ XPosFinOrologioAngoloOpposto=XPosFinOrologio+(XLunFinOrologio-1)
+ YPosFinOrologioAngoloOpposto=YPosFinOrologio+(YLunFinOrologio-1)
+
+ XPosFinParam=WindowX
+ YPosFinParam=WindowY
+ XLunFinParam=BordoSinistraFinestraNormale+1+4+106+4+1+BordoSinistraFinestraRidotta
+ YLunFinParam=BordoAltoFinestraNormale+1+#AltezzaBottoniPiuUno*8+11*2+BordoAltoFinestraRidotta
+
+ If XPosFinParam+XLunFinParam>XLunSchermoWorkbench Then XPosFinParam=XLunSchermoWorkbench-XLunFinParam
+ If YPosFinParam+YLunFinParam>YLunSchermoWorkbench Then YPosFinParam=YLunSchermoWorkbench-YLunFinParam
+
+ Window #FinParam,XPosFinParam,YPosFinParam,XLunFinParam,YLunFinParam,#TipoFinNorm,"",ColoreScuro,ColoreChiaro,#ListaBotParam
+ WTitle "Parametri","Imposta i parametri dell'orologio"
+ WindowFont #FonteTopaz
+ Menus Off
+
+ WColour 1,0
+ GadgetBorder 92,42,19,17
+ WLocate  0,29:Print "X"
+ WLocate 58,29:Print "Y"
+ WLocate  1,43:Print"Angolo"
+ WLocate 40,52:Print"fisso>"
+ WLocate  0,64:Print "X"
+ WLocate 58,64:Print "Y"
+
+ Toggle #ListaBotParam,11,StatoAllarme
+ Redraw #FinParam,11
+
+ Select Angolo$
+ Case "TOP-LEFT"
+  Enable  #ListaBotParam,3
+  Enable  #ListaBotParam,4
+  Disable #ListaBotParam,5
+  Disable #ListaBotParam,6
+  Toggle  #ListaBotParam,7,On
+  Redraw #FinParam,7
+ Case "TOP-RIGHT"
+  Disable #ListaBotParam,3
+  Enable  #ListaBotParam,4
+  Enable  #ListaBotParam,5
+  Disable #ListaBotParam,6
+  Toggle  #ListaBotParam,8,On
+  Redraw #FinParam,8
+ Case "BOTTOM-RIGHT"
+  Disable #ListaBotParam,3
+  Disable #ListaBotParam,4
+  Enable  #ListaBotParam,5
+  Enable  #ListaBotParam,6
+  Toggle  #ListaBotParam,9,On
+  Redraw #FinParam,9
+ Case "BOTTOM-LEFT"
+  Disable #ListaBotParam,3
+  Enable  #ListaBotParam,4
+  Enable  #ListaBotParam,5
+  Disable #ListaBotParam,6
+  Toggle  #ListaBotParam,10,On
+  Redraw #FinParam,10
+ End Select
+
+ Redraw #FinParam,3
+ Redraw #FinParam,4
+ Redraw #FinParam,5
+ Redraw #FinParam,6
+
+ If OraAllarme$="" Then OraAllarme$=UnLeft$(OraDiOggi$,3)
+
+ Select ModoOrologio$
+ Case "DATE"
+  SetGadgetStatus #ListaBotParam,12,1
+ Case "HOUR"
+  SetGadgetStatus #ListaBotParam,12,2
+ Case "BOTH"
+  SetGadgetStatus #ListaBotParam,12,3
+ End Select
+
+ Select ModoFinestra$
+ Case "NORMAL"
+  SetGadgetStatus #ListaBotParam,13,1
+ Case "LITE"
+  SetGadgetStatus #ListaBotParam,13,2
+ Case "INVISIBLE"
+  SetGadgetStatus #ListaBotParam,13,3
+ End Select
+
+ Repeat
+  SetString #ListaBotParam,0,OraAllarme$
+  Redraw #FinParam,0
+  SetString #ListaBotParam,1,FonteOrologio$
+  Redraw #FinParam,1
+  SetString #ListaBotParam,2,Str$(AltezzaFonteOrologio)
+  Redraw #FinParam,2
+  SetString #ListaBotParam,3,Str$(XPosFinOrologio)
+  Redraw #FinParam,3
+  SetString #ListaBotParam,4,Str$(YPosFinOrologio)
+  Redraw #FinParam,4
+  SetString #ListaBotParam,5,Str$(XPosFinOrologioAngoloOpposto)
+  Redraw #FinParam,5
+  SetString #ListaBotParam,6,Str$(YPosFinOrologioAngoloOpposto)
+  Redraw #FinParam,6
+
+  ValoriCambiati.b=False
+  If FonteOrologio$<>FonteOrologioRegistrato$ Then ValoriCambiati=True
+  If AltezzaFonteOrologio<>AltezzaFonteOrologioRegistrata Then ValoriCambiati=True
+  Select Angolo$
+  Case "TOP-LEFT"
+   If XPosFinOrologio<>XPosFinOrologioRegistrata Then ValoriCambiati=True
+   If YPosFinOrologio<>YPosFinOrologioRegistrata Then ValoriCambiati=True
+  Case "TOP-RIGHT"
+   If XPosFinOrologio+(XLunFinOrologio-1)<>XPosFinOrologioRegistrata Then ValoriCambiati=True
+   If YPosFinOrologio<>YPosFinOrologioRegistrata Then ValoriCambiati=True
+  Case "BOTTOM-RIGHT"
+   If XPosFinOrologio+(XLunFinOrologio-1)<>XPosFinOrologioRegistrata Then ValoriCambiati=True
+   If YPosFinOrologio+(YLunFinOrologio-1)<>YPosFinOrologioRegistrata Then ValoriCambiati=True
+  Case "BOTTOM-LEFT"
+   If XPosFinOrologio<>XPosFinOrologioRegistrata Then ValoriCambiati=True
+   If YPosFinOrologio+(YLunFinOrologio-1)<>YPosFinOrologioRegistrata Then ValoriCambiati=True
+  End Select
+  If Angolo$<>AngoloRegistrato$ Then ValoriCambiati=True
+  If ColoreTestoOrologio<>ColoreTestoOrologioRegistrato Then ValoriCambiati=True
+  If ColoreBordoOrologio<>ColoreBordoOrologioRegistrato Then ValoriCambiati=True
+  If ModoFinestra$<>ModoFinestraRegistrato$ Then ValoriCambiati=True
+  If ModoOrologio$<>ModoOrologioRegistrato$ Then ValoriCambiati=True
+  If ModoFinestra$<>ModoFinestraRegistrato$ Then ValoriCambiati=True
+  If ValoriCambiati=True Then Enable #ListaBotParam,15 Else Disable #ListaBotParam,15
+  Redraw #FinParam,12
+  Redraw #FinParam,13
+  Redraw #FinParam,14
+  Redraw #FinParam,15
+
+  EventoFinestra.l=WaitEvent
+
+  Select EventoFinestra
+  Case #HaiRilasciatoUnBottone
+   If GadgetHit<7 Then ActivateString #FinParam,GadgetHit
+   Select GadgetHit
+   Case 0
+    OraAllarme$=StringText$(#ListaBotParam,0)
+   Case 1
+    NuovaFonteOrologio$=StringText$(#ListaBotParam,1)
+    If NuovaFonteOrologio$="" Then CercaFonteDiCaratteri{}
+    If Len(NuovaFonteOrologio$)>0
+     If Right$(NuovaFonteOrologio$,5)<>".font" Then NuovaFonteOrologio$+".font"
+     If Exists("FONTS:"+NuovaFonteOrologio$)
+      FonteOrologio$=NuovaFonteOrologio$
+     EndIf
+    EndIf
+   Case 2
+    AltezzaFonteOrologio=Val(StringText$(#ListaBotParam,2))
+    AltezzaFonteOrologio=Max(AltezzaFonteOrologio,6)
+   Case 3
+    XPosFinOrologio=Val(StringText$(#ListaBotParam,3))
+   Case 4
+    YPosFinOrologio=Val(StringText$(#ListaBotParam,4))
+   Case 5
+    XPosFinOrologioAngoloOpposto=Val(StringText$(#ListaBotParam,5))
+   Case 6
+    YPosFinOrologioAngoloOpposto=Val(StringText$(#ListaBotParam,6))
+   Case 7
+    If GadgetStatus(#ListaBotParam,7)=True Then Angolo$="TOP-LEFT"
+   Case 8
+    If GadgetStatus(#ListaBotParam,8)=True Then Angolo$="TOP-RIGHT"
+   Case 9
+    If GadgetStatus(#ListaBotParam,9)=True Then Angolo$="BOTTOM-RIGHT"
+   Case 10
+    If GadgetStatus(#ListaBotParam,10)=True Then Angolo$="BOTTOM-LEFT"
+   Case 11
+    StatoAllarme=GadgetStatus(#ListaBotParam,11)
+   Case 12
+    Select GadgetStatus(#ListaBotParam,12)
+    Case 1
+     ModoOrologio$="DATE"
+    Case 2
+     ModoOrologio$="HOUR"
+    Case 3
+     ModoOrologio$="BOTH"
+    End Select
+   Case 13
+    Select GadgetStatus(#ListaBotParam,13)
+    Case 1
+     ModoFinestra$="NORMAL"
+    Case 2
+     ModoFinestra$="LITE"
+    Case 3
+     ModoFinestra$="INVISIBLE"
+    End Select
+   Case 14
+    CambiaColori{}
+   Case 15
+    ScriviTooltype{}
+    If TooltypeScritti=True
+     Disable #ListaBotParam,15
+     Redraw #FinParam,15
+    EndIf
+   End Select
+
+   Select Angolo$
+   Case "TOP-LEFT"
+    XPosFinOrologioAngoloOpposto=XPosFinOrologio+(XLunFinOrologio-1)
+    YPosFinOrologioAngoloOpposto=YPosFinOrologio+(YLunFinOrologio-1)
+    Enable  #ListaBotParam,3
+    Enable  #ListaBotParam,4
+    Disable #ListaBotParam,5
+    Disable #ListaBotParam,6
+   Case "TOP-RIGHT"
+    XPosFinOrologio=XPosFinOrologioAngoloOpposto-(XLunFinOrologio-1)
+    YPosFinOrologioAngoloOpposto=YPosFinOrologio+(YLunFinOrologio-1)
+    Disable #ListaBotParam,3
+    Enable  #ListaBotParam,4
+    Enable  #ListaBotParam,5
+    Disable #ListaBotParam,6
+   Case "BOTTOM-RIGHT"
+    XPosFinOrologio=XPosFinOrologioAngoloOpposto-(XLunFinOrologio-1)
+    YPosFinOrologio=YPosFinOrologioAngoloOpposto-(YLunFinOrologio-1)
+    Disable #ListaBotParam,3
+    Disable #ListaBotParam,4
+    Enable  #ListaBotParam,5
+    Enable  #ListaBotParam,6
+   Case "BOTTOM-LEFT"
+    XPosFinOrologioAngoloOpposto=XPosFinOrologio+(XLunFinOrologio-1)
+    YPosFinOrologio=YPosFinOrologioAngoloOpposto-(YLunFinOrologio-1)
+    Enable  #ListaBotParam,3
+    Disable #ListaBotParam,4
+    Disable #ListaBotParam,5
+    Enable  #ListaBotParam,6
+   End Select
+  End Select
+ Until EventoFinestra=#HaiChiusoLaFinestra
+ CloseWindow #FinParam
+ Use Window #FinOrologio
+ Activate #FinOrologio
+End Statement
+
+Statement DataDiOggi{}
+SHARED Allarme$
+SHARED DataDiOggi$
+SHARED LunghezzaDataDiOggi
+SHARED LunghezzaScrittaAllarme
+ Giorni.l=SystemDate
+ Select WeekDay
+ Case 0
+  GiornoDellaSettimana$="Dom"
+ Case 1
+  GiornoDellaSettimana$="Lun"
+ Case 2
+  GiornoDellaSettimana$="Mar"
+ Case 3
+  GiornoDellaSettimana$="Mer"
+ Case 4
+  GiornoDellaSettimana$="Gio"
+ Case 5
+  GiornoDellaSettimana$="Ven"
+ Case 6
+  GiornoDellaSettimana$="Sab"
+ End Select
+; If Giorni>8400
+;  Giorni-8400
+;  Repeat
+;   If Anno MOD 4=3
+;    AnnoBisestile=True
+;    If Giorni>366 Then Giorni-366 Else FineCicloInfinito=True
+;   Else
+;    AnnoBisestile=False
+;    If Giorni>365 Then Giorni-365 Else FineCicloInfinito=True
+;   EndIf
+;   Anno+1
+;   If FineCicloInfinito=True Pop Repeat:Goto FineCicloInfinito
+;  Forever
+;  FineCicloInfinito
+;  Anno$=StripLead$(Str$(2000+Anno),32)
+;  If AnnoBisestile=True
+;   If Giorni>0 AND Giorni<32
+;    Giorno$=StripLead$(Str$(Giorni),32)
+;    Mese$="gennaio"
+;   EndIf
+;   If Giorni>31 AND Giorni<61
+;    Giorno$=StripLead$(Str$(Giorni-31),32)
+;    Mese$="febbraio"
+;   EndIf
+;   If Giorni>60 AND Giorni<92
+;    Giorno$=StripLead$(Str$(Giorni-60),32)
+;    Mese$="marzo"
+;   EndIf
+;   If Giorni>91 AND Giorni<122
+;    Giorno$=StripLead$(Str$(Giorni-91),32)
+;    Mese$="aprile"
+;   EndIf
+;   If Giorni>121 AND Giorni<153
+;    Giorno$=StripLead$(Str$(Giorni-121),32)
+;    Mese$="maggio"
+;   EndIf
+;   If Giorni>152 AND Giorni<183
+;    Giorno$=StripLead$(Str$(Giorni-152),32)
+;    Mese$="giugno"
+;   EndIf
+;   If Giorni>182 AND Giorni<214
+;    Giorno$=StripLead$(Str$(Giorni-182),32)
+;    Mese$="luglio"
+;   EndIf
+;   If Giorni>213 AND Giorni<245
+;    Giorno$=StripLead$(Str$(Giorni-213),32)
+;    Mese$="agosto"
+;   EndIf
+;   If Giorni>244 AND Giorni<275
+;    Giorno$=StripLead$(Str$(Giorni-244),32)
+;    Mese$="settembre"
+;   EndIf
+;   If Giorni>274 AND Giorni<306
+;    Giorno$=StripLead$(Str$(Giorni-274),32)
+;    Mese$="ottobre"
+;   EndIf
+;   If Giorni>305 AND Giorni<336
+;    Giorno$=StripLead$(Str$(Giorni-305),32)
+;    Mese$="novembre"
+;   EndIf
+;   If Giorni>335 AND Giorni<367
+;    Giorno$=StripLead$(Str$(Giorni-335),32)
+;    Mese$="dicembre"
+;   EndIf
+;  Else
+;   If Giorni>0 AND Giorni<32
+;    Giorno$=StripLead$(Str$(Giorni),32)
+;    Mese$="gennaio"
+;   EndIf
+;   If Giorni>31 AND Giorni<60
+;    Giorno$=StripLead$(Str$(Giorni-31),32)
+;    Mese$="febbraio"
+;   EndIf
+;   If Giorni>59 AND Giorni<91
+;    Giorno$=StripLead$(Str$(Giorni-59),32)
+;    Mese$="marzo"
+;   EndIf
+;   If Giorni>90 AND Giorni<121
+;    Giorno$=StripLead$(Str$(Giorni-90),32)
+;    Mese$="aprile"
+;   EndIf
+;   If Giorni>120 AND Giorni<152
+;    Giorno$=StripLead$(Str$(Giorni-120),32)
+;    Mese$="maggio"
+;   EndIf
+;   If Giorni>151 AND Giorni<182
+;    Giorno$=StripLead$(Str$(Giorni-151),32)
+;    Mese$="giugno"
+;   EndIf
+;   If Giorni>181 AND Giorni<213
+;    Giorno$=StripLead$(Str$(Giorni-181),32)
+;    Mese$="luglio"
+;   EndIf
+;   If Giorni>212 AND Giorni<244
+;    Giorno$=StripLead$(Str$(Giorni-212),32)
+;    Mese$="agosto"
+;   EndIf
+;   If Giorni>243 AND Giorni<274
+;    Giorno$=StripLead$(Str$(Giorni-243),32)
+;    Mese$="settembre"
+;   EndIf
+;   If Giorni>273 AND Giorni<305
+;    Giorno$=StripLead$(Str$(Giorni-273),32)
+;    Mese$="ottobre"
+;   EndIf
+;   If Giorni>304 AND Giorni<335
+;    Giorno$=StripLead$(Str$(Giorni-304),32)
+;    Mese$="novembre"
+;   EndIf
+;   If Giorni>334 AND Giorni<366
+;    Giorno$=StripLead$(Str$(Giorni-334),32)
+;    Mese$="dicembre"
+;   EndIf
+;  EndIf
+; Else
+ Giorno$=Str$(Days)
+ Select Months
+ Case 1
+  Mese$="gennaio"
+ Case 2
+  Mese$="febbraio"
+ Case 3
+  Mese$="marzo"
+ Case 4
+  Mese$="aprile"
+ Case 5
+  Mese$="maggio"
+ Case 6
+  Mese$="giugno"
+ Case 7
+  Mese$="luglio"
+ Case 8
+  Mese$="agosto"
+ Case 9
+  Mese$="settembre"
+ Case 10
+  Mese$="ottobre"
+ Case 11
+  Mese$="novembre"
+ Case 12
+  Mese$="dicembre"
+ End Select
+ Anno$=Str$(Years)
+; EndIf
+ DataDiOggi$=" "+GiornoDellaSettimana$+", "+Giorno$+" "+Mese$+" "+Anno$+" "
+ LunghezzaDataDiOggi=TextLength_(RastPort(#FinOrologio),DataDiOggi$,Len(DataDiOggi$))
+End Statement
+
+Statement TestoBordato{Testo$,XPosTesto.w,YPosTesto.w,ColoreTesto.w,ColoreBordo.w}
+ WColour ColoreBordo
+ WLocate XPosTesto,YPosTesto-1:Print Testo$
+ WLocate XPosTesto+1,YPosTesto:Print Testo$
+ WLocate XPosTesto,YPosTesto+1:Print Testo$
+ WLocate XPosTesto-1,YPosTesto:Print Testo$
+ WColour ColoreTesto
+ WLocate XPosTesto,YPosTesto:Print Testo$
+End Statement
+
+Statement ApriFinestraCrediti{}
+SHARED AltezzaTitoli
+SHARED ColoreChiaro
+SHARED ColoreScuro
+SHARED XLunSchermoWorkbench
+SHARED YLunSchermoWorkbench
+ LunghezzaRighe.w=1+#GrandezzaFonteTopaz*29+1
+ AltezzaRighe.w=(1+#GrandezzaFonteTopaz+1)*8
+ TitoloFin$="Crediti orologio"
+ XLunFin.w=4+LunghezzaRighe+4
+ YLunFin.w=AltezzaTitoli+AltezzaRighe+2
+ XPosFin.w=(XLunSchermoWorkbench-XLunFin)/2
+ YPosFin.w=(YLunSchermoWorkbench-YLunFin)/2
+ Window #FinCrediti,XPosFin,YPosFin,XLunFin,YLunFin,#TipoFinCrediti,TitoloFin$,ColoreScuro,ColoreChiaro
+ XLunFin+LunghezzaRighe-InnerWidth
+ YLunFin+AltezzaRighe-InnerHeight
+ CloseWindow #FinCrediti
+ XPosFin=(XLunSchermoWorkbench-XLunFin)/2
+ YPosFin=(YLunSchermoWorkbench-YLunFin)/2
+ Window #FinCrediti,XPosFin,YPosFin,XLunFin,YLunFin,#TipoFinCrediti,TitoloFin$,ColoreScuro,ColoreChiaro
+ WindowFont #FonteTopaz:WJam #TestoSenzaSfondo
+ TestoBordato{"Orologio 3.3-Italian WB clock",1,1,ColoreChiaro,ColoreScuro}
+ TestoBordato{"  By Stefano Maria Regattin  ",1,11,ColoreChiaro,ColoreScuro}
+ TestoBordato{"   On Tuesday 4th May 2010   ",1,21,ColoreChiaro,ColoreScuro}
+ TestoBordato{"Made by Blitz Basic 2.1 from ",1,31,ColoreChiaro,ColoreScuro}
+ TestoBordato{"   ULTIMATE BLITZ BASIC CD   ",1,41,ColoreChiaro,ColoreScuro}
+ TestoBordato{"      www.back2roots.org     ",1,51,ColoreChiaro,ColoreScuro}
+ TestoBordato{"     www.blitz-2000.co.uk    ",1,61,ColoreChiaro,ColoreScuro}
+ TestoBordato{"  www.amiforce.de/AmiBlitz3  ",1,71,ColoreChiaro,ColoreScuro}
+ FlushEvents:WaitEvent:CloseWindow #FinCrediti:Use Window #FinOrologio
+End Statement
+
+;************************************************
+;* Fine delle procedure ed inizio del programma *
+;******* Procedures end and program start *******
+;************************************************
+
+WBStartup
+
+WbToScreen #SchermoWorkbench
+ScreensBitMap #SchermoWorkbench,#AreaGraficaWorkbench
+
+IndirizzoSchermoWorkbench.l=Peek.l(Addr Screen(#SchermoWorkbench))
+XLunSchermoWorkbench.w=Peek.w(IndirizzoSchermoWorkbench+12)
+YLunSchermoWorkbench.w=Peek.w(IndirizzoSchermoWorkbench+14)
+
+OpenFontPrefs
+ AltezzaTitoli=DefaultFontHeight(2)
+CloseFontPrefs
+If AltezzaTitoli=0 Then AltezzaTitoli=#GrandezzaFonteTopaz
+AltezzaTitoli+3
+
+IconaOrologio$=ProgPath$+".info"
+
+LoadFont #FonteTopaz,"topaz.font",#GrandezzaFonteTopaz
+
+;clock font height
+AltezzaFonteOrologio=11
+
+;clock window fixed corner
+Angolo$="TOP-LEFT"
+
+;clock background colour
+ColoreBordoOrologio=0
+
+;clock text colour
+ColoreTestoOrologio=1
+
+;clock font
+FonteOrologio$="topaz.font"
+
+;clock mode
+ModoOrologio$="BOTH"
+
+RitardoCattura=500
+
+;clock window width
+XLunFinOrologio=70
+
+;clock window x position
+XPosFinOrologio=0
+
+;clock window height
+YLunFinOrologio=30
+
+;clock window y position
+YPosFinOrologio=AltezzaTitoli
+
+
+;workbench screen colours
+ColoriWorkbench=2^WBDepth
+
+;brightest colour
+ColoreNero=256*3
+
+;darkest colour
+ColoreBianco=0
+
+;brightest and darkest colours selection
+For Colore=0 To ColoriWorkbench-1
+ If CheckAGA=True
+  Rosso.w=AGARed(Colore)
+  Verde.w=AGAGreen(Colore)
+  Blu.w=AGABlue(Colore)
+ Else
+  Rosso=Red(Colore)
+  Verde=Green(Colore)
+  Blu=Blue(Colore)
+ EndIf
+ IntensitaColore=Rosso+Verde+Blu
+ If ColoreNero>IntensitaColore Then ColoreNero=IntensitaColore:ColoreScuro=Colore
+ If ColoreBianco<IntensitaColore Then ColoreBianco=IntensitaColore:ColoreChiaro=Colore
+Next Colore
+
+;sets the gadget border colours
+BorderPens ColoreChiaro,ColoreScuro
+
+
+;loads the clock font
+LoadFont #FonteOrologio,FonteOrologio$,AltezzaFonteOrologio
+
+ModoFinestra$="NORMAL"
+ApriFinestraOrologio{}
+
+BordoSinistraFinestraNormale=WLeftOff
+BordoAltoFinestraNormale=WTopOff
+
+CloseWindow #FinOrologio
+
+ModoFinestra$="LITE"
+ApriFinestraOrologio{}
+
+BordoSinistraFinestraRidotta=WLeftOff
+BordoAltoFinestraRidotta=WTopOff
+
+CloseWindow #FinOrologio
+
+;clock window mode
+ModoFinestra$="NORMAL"
+
+;gets the system current date
+DataDiOggi$=Date$(SystemDate)
+
+;loads the clock icon tooltype
+LeggiTooltype{}
+
+;loads the clock font
+LoadFont #FonteOrologio,FonteOrologio$,AltezzaFonteOrologio
+
+Select Angolo$
+Case "TOP-LEFT"
+ XPosFinOrologioAngoloOpposto=XPosFinOrologio+(XLunFinOrologio-1)
+ YPosFinOrologioAngoloOpposto=YPosFinOrologio+(YLunFinOrologio-1)
+Case "TOP-RIGHT"
+ XPosFinOrologioAngoloOpposto=XPosFinOrologio
+ XPosFinOrologio-(XLunFinOrologio-1)
+ YPosFinOrologioAngoloOpposto=YPosFinOrologio+(YLunFinOrologio-1)
+Case "BOTTOM-RIGHT"
+ XPosFinOrologioAngoloOpposto=XPosFinOrologio
+ XPosFinOrologio-(XLunFinOrologio-1)
+ YPosFinOrologioAngoloOpposto=YPosFinOrologio
+ YPosFinOrologio-(YLunFinOrologio-1)
+Case "BOTTOM-LEFT"
+ XPosFinOrologioAngoloOpposto=XPosFinOrologio+(XLunFinOrologio-1)
+ YPosFinOrologioAngoloOpposto=YPosFinOrologio
+ YPosFinOrologio-(YLunFinOrologio-1)
+End Select
+
+CloseWindow #FinOrologio
+
+AggiustaDimensioniFinestraOrologio{}
+ApriFinestraOrologio{}
+DataDiOggi{}
+
+If ModoFinestra$="INVISIBLE"
+ If ModoOrologio$="BOTH"
+  AltezzaInternaFinOrologio=(1+AltezzaFonteOrologio+1)*2+1
+ Else
+  AltezzaInternaFinOrologio=1+AltezzaFonteOrologio+1
+ EndIf
+Else
+ If ModoOrologio$="BOTH"
+  AltezzaInternaFinOrologio=AltezzaFonteOrologio*2+1
+ Else
+  AltezzaInternaFinOrologio=AltezzaFonteOrologio
+ EndIf
+EndIf
+
+DifferenzaSpessoreBordi.b=AltezzaInternaFinOrologio-InnerHeight
+YLunFinOrologio+DifferenzaSpessoreBordi
+
+CloseWindow #FinOrologio
+AggiustaDimensioniFinestraOrologio{}
+
+If ModoFinestra$="INVISIBLE"
+ Delay_(RitardoCattura)
+ AutoCookie Off
+ GetaShape #SfondoFinOrologio,XPosFinOrologio,YPosFinOrologio,XLunFinOrologio,YLunFinOrologio
+ AutoCookie On
+EndIf
+
+ApriFinestraOrologio{}
+
+AggiornaLaData.b=True
+XData=(InnerWidth-LunghezzaDataDiOggi)/2
+XAllarme=InnerWidth-1-AltezzaFonteOrologio/2
+YAllarme=InnerHeight-1-AltezzaFonteOrologio/2
+RaggioMassimoCerchio=AltezzaFonteOrologio/2
+SetZone 0,XAllarme,YAllarme,RaggioMassimoCerchio
+
+Repeat
+ EventoFinestra.l=Event
+ Select EventoFinestra
+ Case #HaiCambiatoLeDimensioniDellaFinestra
+  AltezzaFonteOrologio=(InnerHeight-1)/2
+  If AltezzaFonteOrologio<4 Then AltezzaFonteOrologio=4
+  XLunFinOrologio=WindowWidth
+  YLunFinOrologio=WindowHeight
+  RaggioMassimoCerchio=AltezzaFonteOrologio/2
+  LoadFont #FonteOrologio,FonteOrologio$,AltezzaFonteOrologio
+  WindowFont #FonteOrologio
+  WCls ColoreBordoOrologio
+  DataDiOggi{}
+  XData=(InnerWidth-LunghezzaDataDiOggi)/2
+  XAllarme=InnerWidth-1-AltezzaFonteOrologio/2
+  YAllarme=InnerHeight-1-AltezzaFonteOrologio/2
+  RaggioMassimoCerchio=AltezzaFonteOrologio/2
+  RaggioCerchio=RaggioMassimoCerchio
+  SetZone 0,XAllarme,YAllarme,RaggioMassimoCerchio
+ Case #HaiPremutoUnTastoDelTopo
+  TastoDelTopoPremuto.b=MButtons
+ Case #HaiAttivatoLaFinestra
+  TastoDelTopoPremuto=MButtons
+  If ModoFinestra$="INVISIBLE"
+   CloseWindow #FinOrologio
+   Use BitMap #AreaGraficaWorkbench
+   AutoCookie Off
+   GetaShape #SfondoFinOrologio,XPosFinOrologio,YPosFinOrologio,XLunFinOrologio,YLunFinOrologio
+   AutoCookie On
+   AggiustaDimensioniFinestraOrologio{}
+   ApriFinestraOrologio{}
+  EndIf
+  AggiornaLaData=True
+End Select
+
+ Select TastoDelTopoPremuto
+ Case #TastoSinistroDelTopoPremuto
+  If StatoAllarme=On AND Zone(WMouseX,WMouseY)=0
+   StatoAllarme=Off
+  Else
+   PrecedenteFonteOrologio$=FonteOrologio$
+   PrecedenteAltezzaFonteOrologio.b=AltezzaFonteOrologio
+   PrecedenteColoreTestoOrologio.w=ColoreTestoOrologio
+   PrecedenteColoreBordoOrologio.w=ColoreBordoOrologio
+   PrecedenteModoOrologio$=ModoOrologio$
+   PrecedenteModoFinestra$=ModoFinestra$
+
+   Parametri{}
+
+   AggiornaFinestraOrologio.b=False
+   If FonteOrologio$<>PrecedenteFonteOrologio$ Then AggiornaFinestraOrologio=True
+   If AltezzaFonteOrologio<>PrecedenteAltezzaFonteOrologio Then AggiornaFinestraOrologio=True
+   If XPosFinOrologio<>WindowX-WLeftOff Then AggiornaFinestraOrologio=True
+   If YPosFinOrologio<>WindowY-WTopOff Then AggiornaFinestraOrologio=True
+   If ModoOrologio$<>PrecedenteModoOrologio$ Then AggiornaFinestraOrologio=True
+   If ModoFinestra$<>PrecedenteModoFinestra$ Then AggiornaFinestraOrologio=True
+
+   If AggiornaFinestraOrologio=True
+    LoadFont #FonteOrologio,FonteOrologio$,AltezzaFonteOrologio
+    If ModoOrologio$="BOTH"
+     AltezzaInternaOrologio=AltezzaFonteOrologio*2+1
+    Else
+     AltezzaInternaOrologio=AltezzaFonteOrologio
+    EndIf
+
+;the following procedure are called for the proper rastport intialization for
+;the correct date text length evaluation into the following procedure
+    AggiustaDimensioniFinestraOrologio{}
+    ApriFinestraOrologio{}
+
+    DataDiOggi{}
+    AggiustaDimensioniFinestraOrologio{}
+    ApriFinestraOrologio{}
+    DifferenzaSpessoreBordi=AltezzaInternaFinOrologio-InnerHeight
+    YLunFinOrologio+DifferenzaSpessoreBordi
+    CloseWindow #FinOrologio
+    AggiustaDimensioniFinestraOrologio{}
+
+    If ModoFinestra$="INVISIBLE"
+     Use BitMap #AreaGraficaWorkbench
+     AutoCookie Off
+     GetaShape #SfondoFinOrologio,XPosFinOrologio,YPosFinOrologio,XLunFinOrologio,YLunFinOrologio
+     AutoCookie On
+    EndIf
+
+    ApriFinestraOrologio{}
+    AggiornaFinestraOrologio=False
+   EndIf
+
+   XData=(InnerWidth-LunghezzaDataDiOggi)/2
+   XAllarme=InnerWidth-1-AltezzaFonteOrologio/2
+   YAllarme=InnerHeight-1-AltezzaFonteOrologio/2
+   RaggioMassimoCerchio=AltezzaFonteOrologio/2
+   RaggioCerchio=RaggioMassimoCerchio
+   SetZone 0,XAllarme,YAllarme,RaggioMassimoCerchio
+  EndIf
+  If ColoreBordoOrologio<>PrecedenteColoreBordoOrologio Then WCls ColoreBordoOrologio
+  AggiornaLaData=True
+ Case #TastoDestroDelTopoPremuto
+  ApriFinestraCrediti{}
+  AggiornaLaData=True
+ End Select
+ FlushEvents #HaiPremutoUnTastoDelTopo:TastoDelTopoPremuto=0
+
+ If ModoOrologio$<>"DATE" OR AggiornaLaData=True
+  If ModoFinestra$="INVISIBLE"
+   WBlit #SfondoFinOrologio,0,0
+   WJam #TestoSenzaSfondo
+   WColour ColoreBordoOrologio
+  Else
+   WJam #TestoConSfondo
+   WColour ColoreTestoOrologio,ColoreBordoOrologio
+  EndIf
+ EndIf
+
+ If ModoOrologio$<>"DATE" OR AggiornaLaData=True
+  If ModoOrologio$<>"HOUR"
+   If ModoFinestra$="INVISIBLE"
+    TestoBordato{DataDiOggi$,XData,1,ColoreTestoOrologio,ColoreBordoOrologio}
+   Else
+    WLocate XData,0
+    Print DataDiOggi$
+   EndIf
+  EndIf
+ EndIf
+ AggiornaLaData=False
+                                                                                                                               M
+ OraDiOggi$="  "+Str$(Hours/10)
+ OraDiOggi$+Str$(Hours MOD 10)+":"
+ OraDiOggi$+Str$(Mins/10)
+ OraDiOggi$+Str$(Mins MOD 10)+":"
+ OraDiOggi$+Str$(Secs/10)
+ OraDiOggi$+Str$(Secs MOD 10)+"  "
+ LunghezzaOraDiOggi=TextLength_(RastPort(#FinOrologio),OraDiOggi$,Len(OraDiOggi$))
+ XOra=(InnerWidth-LunghezzaOraDiOggi)/2
+
+ If ModoOrologio$="BOTH"
+  If ModoFinestra$="INVISIBLE" Then XOra+1:YOra=1+AltezzaFonteOrologio+1+1+1 Else YOra=AltezzaFonteOrologio+1
+ Else
+  If ModoFinestra$="INVISIBLE" Then XOra+1:YOra=1 Else YOra=0
+ EndIf
+
+ If ModoOrologio$<>"DATE"
+  If ModoFinestra$="INVISIBLE"
+   TestoBordato{OraDiOggi$,XOra,YOra,ColoreTestoOrologio,ColoreBordoOrologio}
+  Else
+   WLocate XOra,YOra:Print OraDiOggi$
+  EndIf
+ EndIf
+
+ VWait
+
+ OraDiOggi$=StripTrail$(StripLead$(OraDiOggi$,Asc(" ")),Asc(" "))
+
+ Minuti.b=Val(Mid$(OraDiOggi$,4,2))
+ Secondi=Val(Right$(OraDiOggi$,2))
+ If Minuti=0
+  If OraSuonata.b=False
+   Ora.b=Val(Left$(OraDiOggi$,2)) MOD 12
+   If Ora=0
+    Ora=12:DataDiOggi$=Date$(SystemDate)
+    DataDiOggi{}
+    AggiustaDimensioniFinestraOrologio{}
+    ApriFinestraOrologio{}
+    AggiornaLaData=True
+   EndIf
+  EndIf
+  If Ora>0
+   BeepScreen #SchermoWorkbench
+   Ora-1
+   OraSuonata=True
+  EndIf
+ Else
+  If OraSuonata=True Then OraSuonata=False
+ EndIf
+
+ If StatoAllarme=On
+  If Left$(OraDiOggi$,5)=OraAllarme$ Then BeepScreen #SchermoWorkbench
+  WCircle XAllarme,YAllarme,RaggioCerchio,ColoreTestoOrologio
+ EndIf
+
+ If EventoFinOrologio=0 Then Delay_ 49
+
+ If StatoAllarme=On
+  WCircle XAllarme,YAllarme,RaggioCerchio,ColoreBordoOrologio
+  RaggioCerchio+1
+  If RaggioCerchio>RaggioMassimoCerchio Then RaggioCerchio=1
+ EndIf
+Until EventoFinestra=#HaiChiusoLaFinestra
+CloseWindow #FinOrologio
+End
