@@ -1,0 +1,170 @@
+;-> BootPicture by Stefano Maria Regattin
+;i> 11 giugno 2012
+;m> 14,20 giugno 2012
+;m> 6,7,8 marzo-Festa Delle Donne 2013
+;m> 27,28,29 novembre 2013
+;m> 6 febbraio 2014
+;m> 24,27 aprile 2018
+;m> 8 maggio 2018
+;m> 9 giugno 2018
+;m> 20 ottobre 2018
+;m> 8,9,10,15,20,21 maggio 2019
+;m> 18,19,23 luglio 2019
+;m> 15,22,23 agosto 2019
+;m> 3 settembre 2019
+;--------------------
+JMP InizioDelProgramma
+Dc.b "$VER: BootPicture 1.3 (3.9.2019)"
+Even
+InizioDelProgramma
+#AreaGrafica=0
+#FinestraImma=0
+#FinestraDiSfondo=256;    $100
+#FinestraAttivata=4096;  $1000
+#FinestraSenzaBordi=2048; $800
+#HaiPremutoITastiDelTopo=8
+#Interallacciato=4
+#ListaImmagini=0
+#PuntatoreDelTopo=0
+#SchermoImma=0
+#SchermoNeroCoprente=1
+#Suono=0
+#TavolozzaImma=0
+#TavolozzaNeroCoprente=1
+#TipoFinestra=#FinestraDiSfondo+#FinestraSenzaBordi+#FinestraAttivata
+ListaImmagini$="RAM:BootPictures.list"
+CassettoImma.b=False:ColoreChiaro.w=1:MostraMessaggi.b=False:RipetiIlSuono.b=False
+XLunFinestra.w=640:YLunFinestra.b=8:YPosFinestra.w=512-YLunFinestra
+If FromCLI=True
+ Parametri.b=NumPars
+ If Parametri<1 OR Parametri>8 Then NPrint "Wrong parameters number!":MostraMessaggi=True
+ If Parametri=1 AND Par$(1)="?"
+  NPrint "BootPicture [PICTURE|PIX]/K PixPath [DRAWER]/S [SOUND|SND]/K SndPath [LOOPSND]/K"
+  NPrint "WAIT/A/K/N Time (50ths*Sec)"
+  MostraMessaggi=True
+ EndIf
+ For Parametro.b=1 To Parametri
+  Select Par$(Parametro)
+  Case "DRAWER"
+   CassettoImma=True
+  Case "PICTURE"
+   If Parametro<Parametri Then Imma$=Par$(Parametro+1) Else NPrint "PixPath missing!":MostraMessaggi=True
+  Case "PIX"
+   If Parametro<Parametri Then Imma$=Par$(Parametro+1) Else NPrint "PixPath missing!":MostraMessaggi=True
+  Case "LOOPSND"
+   RipetiIlSuono=True
+  Case "SND"
+   If Parametro<Parametri Then Suono$=Par$(Parametro+1) Else NPrint "SndPath missing!":MostraMessaggi=True
+  Case "SOUND"
+   If Parametro<Parametri Then Suono$=Par$(Parametro+1) Else NPrint "SndPath missing!":MostraMessaggi=True
+  Case "WAIT"
+   If Parametro<Parametri Then TempoDiAttesa.w=Val(Par$(Parametro+1)) Else NPrint "Time missing!":MostraMessaggi=True
+  End Select
+ Next Parametro
+ If MostraMessaggi=False
+  PercorsoProgramma$=ProgDir$
+  If Imma$<>"" AND Instr(Imma$,":")=0 Then PercorsoImma$=PercorsoProgramma$+"/"+Imma$:Imma$=PercorsoImma$
+  If Suono$<>"" AND Instr(Suono$,":")=0 Then PercorsoSuono$=PercorsoProgramma$+"/"+Suono$:Suono$=PercorsoSuono$
+  TitoloSchermo$=Centre$("BootPicture 1.3 by Stefano Maria Regattin on Tue 3 Sep 2019",78)
+  InitPalette #TavolozzaNeroCoprente,2
+  PalRGB #TavolozzaNeroCoprente,1,15,15,15
+  Screen #SchermoNeroCoprente,25,TitoloSchermo$
+  Use Palette #TavolozzaNeroCoprente
+  Use Screen #SchermoNeroCoprente
+  If CassettoImma=True AND Imma$<>""
+   CassettoImma$=Imma$:If Right$(CassettoImma$,1)<>"/" Then CassettoImma$+"/"
+   Exec "C:List >"+ListaImmagini$+" "+CassettoImma$+" QUICK"
+   ListaImma.b=ReadFile(#ListaImmagini,ListaImmagini$):FileInput #ListaImmagini
+   If ListaImma=True
+    Immagine.b=-128
+    Repeat
+     Immagine$=Edit$(80)
+     If Immagine$<>"" AND Right$(Immagine$,11)<>"blocks used" Then Immagine+1
+    Until Eof(#ListaImmagini)=True OR Immagine=127
+    PopInput
+    If Immagine>-128
+     ListaImma.b=ReadFile(#ListaImmagini,ListaImmagini$):FileInput #ListaImmagini
+     If ListaImma=True
+      Immagine=-128
+      Repeat
+       Immagine$=Edit$(30)
+       If Immagine$<>""
+        Immagine+1:ImmaScelta.b=Rnd(127) MOD 2
+        If Immagine=127 AND ImmaScelta=0 Then ImmaScelta=1
+        If ImmaScelta=1 Then Imma$=Immagine$
+       EndIf
+      Until ImmaScelta=1
+      PopInput
+     EndIf
+    Else
+     NPrint "Images missing into drawer "+Imma$+"!"
+    EndIf
+   Else
+    NPrint "Drawer content list missing!"
+   EndIf
+  EndIf
+  If CassettoImma=True Then Imma$=CassettoImma$+Imma$
+  If Exists(Imma$)>0 Then ImmagineTrovata.b=True Else ImmagineTrovata=False
+  If ImmagineTrovata=True
+   ILBMInfo Imma$:XLunImma.w=ILBMWidth:YLunImma.w=ILBMHeight:ProfImma.b=ILBMDepth:ModoImma.l=ILBMViewMode
+   If ModoImma BitTst 15=False AND XLunImma<>320 Then XLunImma=320
+   If ModoImma BitTst 15=True AND XLunImma<>640 Then XLunImma=640
+   If ModoImma BitTst 2=False AND YLumImma<>DispHeight Then YLumImma=DispHeight
+   If ModoImma BitTst 2=True AND YLunImma<>DispHeight*2 Then YLunImma=DispHeight*2
+   ScreenTags #SchermoImma,Imma$,$80000023,XLunImma,$80000024,YLunImma,$80000025,ProfImma,$8000002D,ModoImma,$80000032,ModoImma
+   HideScreen #SchermoImma
+  EndIf
+  If TempoDiAttesa>0
+   InitShape #PuntatoreDelTopo,16,16,2
+   ShapesBitMap #PuntatoreDelTopo,#AreaGrafica
+   Circlef 7,7,7,1:Line 7,2,7,12,0:Line 2,7,12,7,0:Circle 7,7,7,2
+   Free BitMap #AreaGrafica
+   ShowScreen #SchermoNeroCoprente
+   If ImmagineTrovata=True
+    LoadScreen #SchermoImma,Imma$,#TavolozzaImma
+    Use Palette #TavolozzaImma
+    ShowScreen #SchermoImma
+    ScreensBitMap #SchermoImma,#AreaGrafica
+    HideScreen #SchermoNeroCoprente
+    CloseScreen #SchermoNeroCoprente
+    Free Palette #TavolozzaNeroCoprente
+    Use Screen #SchermoImma
+    ColoreChiaro=FindColor(#TavolozzaImma,191,191,191,16)
+    XLunFinestra=XLunImma:YLunFinestra=YLunImma/64
+    If ModoImma BitTst 2=False Then YPosFinestra=DispHeight-YLunFinestra Else YPosFinestra=DispHeight*2-YLunFinestra
+   EndIf
+   Window #FinestraImma,0,YPosFinestra,XLunFinestra,YLunFinestra,#TipoFinestra,"",-1,-1
+   WPointer #PuntatoreDelTopo
+   If ImmagineTrovata=True Then BitMaptoWindow #AreaGrafica,#FinestraImma,0,YPosFinestra,0,0,XLunFinestra,YLunFinestra
+   If Exists(Suono$)>0 Then SuonoTrovato.b=True Else SuonoTrovato=False
+   If SuonoTrovato=True
+    LoadSound #Suono,Suono$:Suono.b=Rnd(1)+1
+    If RipetiIlSuono=True Then LoopSound #Suono,3 Else Sound #Suono,Suono:Delay_ 12:Sound #Suono,3-Suono
+   EndIf
+   FlushEvents #HaiPremutoITastiDelTopo
+   Repeat
+    WBox 0,0,ScreenWidth*TempoTrascorso.w/TempoDiAttesa,YLunFinestra-1,ColoreChiaro
+    EventoFinestra.l=Event
+    If EventoFinestra=#HaiPremutoITastiDelTopo Then Pop Repeat:Goto FineCicloAttesa
+    VWait
+    If ImmagineTrovata=True Then ShowScreen #SchermoImma Else ShowScreen #SchermoNeroCoprente
+    TempoTrascorso+1
+   Until TempoTrascorso=TempoDiAttesa
+   FineCicloAttesa
+   If ImmagineTrovata=True
+    CloseWindow #FinestraImma
+    HideScreen #SchermoImma
+    CloseScreen #SchermoImma
+    Free Palette #TavolozzaImma
+   EndIf
+   Free Shape #PuntatoreDelTopo
+  EndIf
+  If SuonoTrovato=True AND RipetiIlSuono=True Then Quiet 3
+  If SuonoTrovato=True Then Free Sound #Suono
+  If Exists(ListaImmagini$)>0 Then KillFile ListaImmagini$
+ EndIf
+Else
+ WBStartup
+ Request "BootPicture Request","Please launch it from CLI|or better from script!","Okay"
+EndIf
+End
