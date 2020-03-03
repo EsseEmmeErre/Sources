@@ -1,0 +1,322 @@
+;-> Backdrop Pattern Generator by Stefano Maria Regattin
+;i> 28 aprile 2019
+;m> 29.30 aprile 2019
+;m> 2,6,7 maggio 2019
+;m> 31 agosto 2019
+;m> 8 settembre-2019 Nativita' della Beata Vergine Maria
+;m> 28,29 febbraio 2020
+;-----------------------
+JMP InizioDelProgramma
+Dc.b "$VER: BackdPattGener 1.1 (29.2.2020)"
+Even
+InizioDelProgramma
+#AreaGraficaIngran=1
+#AreaGraficaSalvat=2
+#AreaGraficaSfondo=0
+#Finestra=0
+#GrandezzaMassimaSfondo=128
+#ListaBottoni=0
+#SchermoWorkbench=0
+#TastoSinistroDelTopo=1
+#TastoDestroDelTopo=2
+#TavolozzaDeiColori=0
+
+;window's events
+#HaiPremutoUnTastoDelTopo=8
+;you have clicked a mouse button
+#HaiCliccatoIlBottoneDiChiusura=512
+;you have clicked the window's close button
+#HaiRilasciatoUnBottone=64
+;you have released a button
+
+ColoreDelTastoDestro.w=0:ColoreDelTastoSinistro.w=1:ColoriDelWorkbench.w=2^WBDepth:GrandezzaIngran.w=32:GrandezzaSfondo.w=16
+Ingrandimento.b=2:LunAreaIngran.b=Min(GrandezzaSfondo,#GrandezzaMassimaSfondo/Ingrandimento)
+RigheDeiColori.b=Max(ColoriDelWorkbench/16,1):XLunDeiColori.w=Max(ColoriDelWorkbench*24,384)
+XLunDellaFinestra.w=4+#GrandezzaMassimaSfondo*4+8+4:XPosAreaIngran.w=#GrandezzaMassimaSfondo*3
+XSposAreaIngran.b=0:YSposAreaIngran.b=0
+
+TitoloFinestra$="Backdrop Pattern Generator 1.1":TitoloRequester$=TitoloFinestra$+" Request"
+TitoloSchermo$="BackdPattGener 1.1 by Stefano Maria Regattin on Sat 29 Feb 2020"
+MaxLen NomeImmagine$=64:MaxLen PercorsoImmagine$=160
+
+WBStartup
+WbToScreen #SchermoWorkbench
+InitPalette #TavolozzaDeiColori,ColoriDelWorkbench
+For Colore.w=0 To ColoriDelWorkbench-1
+ If CheckAGA=True
+  AGAPalRGB #TavolozzaDeiColori,Colore,AGARed(Colore),AGAGreen(Colore),AGABlue(Colore)
+ Else
+  PalRGB #TavolozzaDeiColori,Colore,Red(Colore),Green(Colore),Blue(Colore)
+ EndIf
+Next Colore
+OpenFontPrefs
+AltezzaFonteDegliSchermi.b=DefaultFontHeight(2)
+AltezzaFonteDelleFinestre.b=DefaultFontHeight(1)
+CloseFontPrefs
+AltezzaDeiBottoni.b=2+AltezzaFonteDelleFinestre+2:YPosDegliSfondi.w=RigheDeiColori*AltezzaDeiBottoni
+YLunDellaFinestra.w=11+YPosDegliSfondi+#GrandezzaMassimaSfondo*3+2
+If XLunDellaFinestra>WBWidth OR YLunDellaFinestra>WBHeight
+ Messaggio$="Window is too much big for Workbench!|Standard window's sizes: 520x397|It can depend of your font prefs also!"
+ Request TitoloRequester$,Messaggio$,"Okay"
+Else
+ BitMap #AreaGraficaSfondo,#GrandezzaMassimaSfondo,#GrandezzaMassimaSfondo,WBDepth
+ BitMap #AreaGraficaIngran,#GrandezzaMassimaSfondo,#GrandezzaMassimaSfondo,WBDepth
+ TextGadget #ListaBottoni,0,0,0,1," 16| 24| 32| 40| 48| 56| 64| 72| 80| 88| 96|104|112|120|128"
+ TextGadget #ListaBottoni,32,0,0,2,"2|4|8"
+ TextGadget #ListaBottoni,48+XLunDeiColori,0,1,3,"Mix"
+ TextGadget #ListaBottoni,48+XLunDeiColori+32+24,0,0,4,"Clr"
+ PropGadget #ListaBottoni,XPosAreaIngran+#GrandezzaMassimaSfondo,YPosDegliSfondi,128,5,8,#GrandezzaMassimaSfondo
+ PropGadget #ListaBottoni,XPosAreaIngran,YPosDegliSfondi+#GrandezzaMassimaSfondo,64,6,#GrandezzaMassimaSfondo,8
+ TextGadget #ListaBottoni,-80,-AltezzaDeiBottoni,6,7,"Load"
+ TextGadget #ListaBottoni,-40,-AltezzaDeiBottoni,6,8,"Save"
+ AreaIngran.w=GrandezzaSfondo*Ingrandimento-#GrandezzaMassimaSfondo+1
+ SetVProp #ListaBottoni,5,YSposAreaIngran/AreaIngran,1/AreaIngran
+ SetHProp #ListaBottoni,6,XSposAreaIngran/AreaIngran,1/AreaIngran
+ Window #Finestra,0,AltezzaFonteDegliSchermi+3,XLunDellaFinestra,YLunDellaFinestra,$1408,TitoloFinestra$,-1,-1,#ListaBottoni
+ If WLeftOff<>4 OR WTopOff<>11
+  XLunDellaFinestra+XLunDellaFinestra-4-#GrandezzaMassimaSfondo*4-4
+  YLunDellaFinestra+YLunDellaFinestra-11-YPosDegliSfondi-#GrandezzaMassimaSfondo*3-2
+  CloseWindow #Finestra
+  Window #Finestra,0,AltezzaFonteDegliSchermi+3,XLunDellaFinestra,YLunDellaFinestra,$1408,TitoloFinestra$,-1,-1,#ListaBottoni
+ EndIf
+ WTitle TitoloFinestra$,TitoloSchermo$
+ MenusOff
+ For Colore=0 To ColoriDelWorkbench-1
+  XPosDelColore.w=48+Colore MOD 16*24:YPosDelColore.b=Colore/32*AltezzaDeiBottoni
+  WBox XPosDelColore,YPosDelColore,XPosDelColore+23,YPosDelColore+11,Colore
+ Next Colore
+ Gosub ColoriMisti:Gosub Griglia
+ Colore=ColoreDelTastoSinistro:ColoriMisti.b=False:FineDelProgramma=False
+ Repeat
+  EventoFinestra.l=WaitEvent
+  Select EventoFinestra
+  Case #HaiPremutoUnTastoDelTopo
+   TastoDelTopoPremuto.b=Joyb(0):XPosDelTopo.w=WMouseX:YPosDelTopo.w=WMouseY
+   If YPosDelTopo<YPosDegliSfondi
+    If XPosDelTopo>47 AND XPosDelTopo<48+XLunDeiColori
+     Colore=(XPosDelTopo-48)/24+(YPosDelTopo/AltezzaDeiBottoni)*16
+     Select TastoDelTopoPremuto
+     Case #TastoSinistroDelTopo
+      ColoreDelTastoSinistro=Colore
+     Case #TastoDestroDelTopo
+      ColoreDelTastoDestro=Colore
+     End Select
+     Gosub ColoriMisti
+    EndIf
+   Else
+    If XPosDelTopo<XPosAreaIngran AND YPosDelTopo<YPosDegliSfondi+GrandezzaSfondo*3
+     Repeat
+      TastoDelTopoPremuto=Joyb(0):XPosDelTopo=WMouseX:YPosDelTopo=WMouseY
+      If XPosDelTopo<XPosAreaIngran AND YPosDelTopo<GrandezzaSfondo*3
+       XPosDelPunto.w=XPosDelTopo MOD GrandezzaSfondo
+       YPosDelPunto.w=(YPosDelTopo-YPosDegliSfondi) MOD GrandezzaSfondo
+        Gosub SelezionaColore:Gosub Griglia:Gosub DisegnaSfondi:Gosub Griglia:Gosub Ingrandimento
+       VWait
+      EndIf
+     Until TastoDelTopoPremuto=0
+    EndIf
+    If YPosDelTopo<YPosDegliSfondi+GrandezzaIngran
+     If XPosDelTopo>=XPosAreaIngran AND XPosDelTopo<XPosAreaIngran+GrandezzaIngran
+      Repeat
+       TastoDelTopoPremuto=Joyb(0):XPosDelTopo=WMouseX:YPosDelTopo=WMouseY
+       If YPosDelTopo>=YPosDegliSfondi AND YPosDelTopo<YPosDegliSfondi+GrandezzaIngran
+        If XPosDelTopo>=XPosAreaIngran AND XPosDelTopo<XPosAreaIngran+GrandezzaIngran
+         XPosDelQuadrato.w=(XPosDelTopo-XPosAreaIngran)/Ingrandimento*Ingrandimento
+         YPosDelQuadrato.w=(YPosDelTopo-YPosDegliSfondi)/Ingrandimento*Ingrandimento
+         Use BitMap #AreaGraficaIngran
+         If ColoriMisti=True
+          Colore=(XPosDelQuadrato/Ingrandimento+YPosDelQuadrato/Ingrandimento) MOD 2
+          Select TastoDelTopoPremuto
+          Case #TastoSinistroDelTopo
+           If Colore=0 Then Colore=ColoreDelTastoSinistro Else Colore=ColoreDelTastoDestro
+          Case #TastoDestroDelTopo
+           If Colore=0 Then Colore=ColoreDelTastoDestro Else Colore=ColoreDelTastoSinistro
+          End Select
+         Else
+          Select TastoDelTopoPremuto
+          Case #TastoSinistroDelTopo
+           Colore=ColoreDelTastoSinistro
+          Case #TastoDestroDelTopo
+           Colore=ColoreDelTastoDestro
+          End Select
+         EndIf
+         Boxf XPosDelQuadrato,YPosDelQuadrato,XPosDelQuadrato+Ingrandimento-1,YPosDelQuadrato+Ingrandimento-1,Colore
+         BitMaptoWindow #AreaGraficaIngran,#Finestra,0,0,XPosAreaIngran,YPosDegliSfondi,GrandezzaIngran,GrandezzaIngran
+         XPosDelPunto=XPosDelQuadrato/Ingrandimento+XSposAreaIngran:YPosDelPunto=YPosDelQuadrato/Ingrandimento+YSposAreaIngran
+         Gosub Griglia:Gosub DisegnaSfondi:Gosub Griglia
+         VWait
+        EndIf
+       EndIf
+      Until TastoDelTopoPremuto=0
+     EndIf
+    EndIf
+   EndIf
+  Case #HaiRilasciatoUnBottone
+   BottonePremuto.b=GadgetHit
+   Select BottonePremuto
+   Case 1
+    GrandezzaSfondo=GadgetStatus(#ListaBottoni,1)*8+8:LunAreaIngran=Min(GrandezzaSfondo,#GrandezzaMassimaSfondo/Ingrandimento)
+    If GrandezzaSfondo=16 Then XSposAreaIngran=0:YSposAreaIngran=0
+    AreaIngran=GrandezzaSfondo-#GrandezzaMassimaSfondo/Ingrandimento+1
+    WBox 0,YPosDegliSfondi,#GrandezzaMassimaSfondo*3-1,YPosDegliSfondi+#GrandezzaMassimaSfondo*3-1,0
+    WBox XPosAreaIngran,YPosDegliSfondi,XPosAreaIngran+#GrandezzaMassimaSfondo-1,YPosDegliSfondi+#GrandezzaMassimaSfondo-1,0
+    SetVProp #ListaBottoni,5,YSposAreaIngran/AreaIngran,1/AreaIngran:Redraw #Finestra,5
+    SetHProp #ListaBottoni,6,XSposAreaIngran/AreaIngran,1/AreaIngran:Redraw #Finestra,6
+    Gosub CopiaSfondi:Gosub Griglia:Gosub Ingrandimento
+   Case 2
+    Ingrandimento=2^GadgetStatus(#ListaBottoni,2):LunAreaIngran=Min(GrandezzaSfondo,#GrandezzaMassimaSfondo/Ingrandimento)
+    AreaIngran=GrandezzaSfondo-#GrandezzaMassimaSfondo/Ingrandimento+1
+    WBox XPosAreaIngran,YPosDegliSfondi,XPosAreaIngran+#GrandezzaMassimaSfondo-1,YPosDegliSfondi+#GrandezzaMassimaSfondo-1,0
+    SetVProp #ListaBottoni,5,YSposAreaIngran/AreaIngran,1/AreaIngran:Redraw #Finestra,5
+    SetHProp #ListaBottoni,6,XSposAreaIngran/AreaIngran,1/AreaIngran:Redraw #Finestra,6
+    Gosub Griglia:Gosub Ingrandimento:Gosub Griglia
+   Case 3
+    ColoriMisti=GadgetStatus(#ListaBottoni,3)
+   Case 4
+    If ColoriMisti=True
+     For YPosDelPunto=0 To GrandezzaSfondo*3-1
+      For XPosDelPunto=0 To GrandezzaSfondo*3-1
+       Colore=(XPosDelPunto+YPosDelPunto) MOD 2
+       If Colore=0 Then Colore=ColoreDelTastoSinistro Else Colore=ColoreDelTastoDestro
+       If XPosDelPunto<GrandezzaSfondo AND YPosDelPunto<GrandezzaSfondo
+        Use BitMap #AreaGraficaSfondo:Plot XPosDelPunto,YPosDelPunto,Colore
+       EndIf
+       Use Window #Finestra:WPlot XPosDelPunto,YPosDegliSfondi+YPosDelPunto,Colore
+      Next XPosDelPunto
+     Next YPosDelPunto
+    Else
+     WBox 0,YPosDegliSfondi,GrandezzaSfondo*3-1,YPosDegliSfondi+GrandezzaSfondo*3-1,ColoreDelTastoDestro
+     Use BitMap #AreaGraficaSfondo:Boxf 0,0,GrandezzaSfondo-1,GrandezzaSfondo-1,ColoreDelTastoDestro
+    EndIf
+    Gosub Griglia:Gosub Ingrandimento
+   Case 5
+    YSposAreaIngran=VPropPot(#ListaBottoni,5)*AreaIngran
+    Gosub Ingrandimento:Gosub CopiaSfondi:Gosub Griglia
+   Case 6
+    XSposAreaIngran=HPropPot(#ListaBottoni,6)*AreaIngran
+    Gosub Ingrandimento:Gosub CopiaSfondi:Gosub Griglia
+   Case 7
+    Immagine$=FileRequest$("Load the pattern...",PercorsoImmagine$,NomeImmagine$)
+    If Immagine$<>""
+     ILBMInfo Immagine$:GrandezzaSfondo=Min(Max(ILBMWidth,ILBMHeight),#GrandezzaMassimaSfondo)
+     If GrandezzaSfondo MOD 8>0 Then GrandezzaSfondo+8-GrandezzaSfondo MOD 8
+     LoadBitMap #AreaGraficaSfondo,Immagine$
+     SetGadgetStatus #ListaBottoni,1,(GrandezzaSfondo-8)/8:Redraw #Finestra,1
+     LunAreaIngran=Min(GrandezzaSfondo,#GrandezzaMassimaSfondo/Ingrandimento)
+     AreaIngran=GrandezzaSfondo-#GrandezzaMassimaSfondo/Ingrandimento
+     WBox 0,YPosDegliSfondi,#GrandezzaMassimaSfondo*3-1,YPosDegliSfondi+#GrandezzaMassimaSfondo*3-1,0
+     WBox XPosAreaIngran,YPosDegliSfondi,XPosAreaIngran+#GrandezzaMassimaSfondo-1,YPosDegliSfondi+#GrandezzaMassimaSfondo-1,0
+     Gosub CopiaSfondi:Gosub Griglia:Gosub Ingrandimento
+     Request TitoloRequester$,"Pattern loaded as:|"+Right$(Immagine$,70),"Okay"
+     Immagine.l=FilePart_(Immagine$)
+     PercorsoImmagine$=UnLeft$(Immagine$,Len(Peek$(Immagine))):NomeImmagine$=Right$(Immagine$,Len(Peek$(Immagine)))
+    EndIf
+   Case 8
+    Immagine$=FileRequest$("Save the pattern...",PercorsoImmagine$,NomeImmagine$)
+    If Immagine$<>""
+     BitMap #AreaGraficaSalvat,GrandezzaSfondo,GrandezzaSfondo,WBDepth
+     Use BitMap #AreaGraficaSfondo:GetaShape 0,0,0,GrandezzaSfondo,GrandezzaSfondo
+     Use BitMap #AreaGraficaSalvat:Blit 0,0,0
+     SaveBitmap #AreaGraficaSalvat,Immagine$,#TavolozzaDeiColori
+     Request TitoloRequester$,"Pattern saved as:|"+Right$(Immagine$,70),"Okay"
+     Free Shape 0:Free BitMap #AreaGraficaSalvat
+     Immagine.l=FilePart_(Immagine$)
+     PercorsoImmagine$=UnLeft$(Immagine$,Len(Peek$(Immagine))):NomeImmagine$=Right$(Immagine$,Len(Peek$(Immagine)))
+    EndIf
+   End Select
+  Case #HaiCliccatoIlBottoneDiChiusura
+   FineDelProgramma=True
+  End Select
+  If FineDelProgramma=True Then Uscita.b=Request(TitoloRequester$,"Would you leave the program?","No|Yes")
+  If Uscita=1 Then FineDelProgramma=False
+ Until FineDelProgramma=True
+EndIf
+End
+.ColoriMisti
+ For Colore=0 To 3
+  If Colore=0 OR Colore=3
+   ColoreMisto.b=ColoreDelTastoSinistro
+  Else
+   ColoreMisto=ColoreDelTastoDestro
+  EndIf
+  XPosDelQuadrato=48+XLunDeiColori+32+Colore MOD 2*12:YPosDelQuadrato=Colore/2*AltezzaDeiBottoni/2
+  WBox XPosDelQuadrato,YPosDelQuadrato,XPosDelQuadrato+11,YPosDelQuadrato+5,ColoreMisto
+ Next Colore
+Return
+.CopiaSfondi
+ If GrandezzaSfondo=16 Then WBox 0,YPosDegliSfondi,#GrandezzaMassimaSfondo*3-1,YPosDegliSfondi+#GrandezzaMassimaSfondo*3-1,0
+ For Area.b=0 To 8
+  YPosDelloSfondo.w=YPosDegliSfondi+Area/3*GrandezzaSfondo
+  BitMaptoWindow #AreaGraficaSfondo,#Finestra,0,0,Area MOD 3*GrandezzaSfondo,YPosDelloSfondo,GrandezzaSfondo,GrandezzaSfondo
+ Next Area
+Return
+.DisegnaSfondi
+ For Area=0 To 8
+  WPlot XPosDelPunto+Area MOD 3*GrandezzaSfondo,YPosDegliSfondi+YPosDelPunto+Area/3*GrandezzaSfondo,Colore
+ Next Area
+ Use BitMap #AreaGraficaSfondo:Plot XPosDelPunto,YPosDelPunto,Colore
+Return
+.Griglia
+ WJam 2
+ Wline GrandezzaSfondo-1,YPosDegliSfondi,GrandezzaSfondo-1,YPosDegliSfondi+GrandezzaSfondo*3-1,0
+ Wline GrandezzaSfondo*2-1,YPosDegliSfondi,GrandezzaSfondo*2-1,YPosDegliSfondi+GrandezzaSfondo*3-1,0
+ Wline 0,YPosDegliSfondi+GrandezzaSfondo-1,GrandezzaSfondo*3-1,YPosDegliSfondi+GrandezzaSfondo-1,0
+ Wline 0,YPosDegliSfondi+GrandezzaSfondo*2-1,GrandezzaSfondo*3-1,YPosDegliSfondi+GrandezzaSfondo*2-1,0
+ WJam 1
+ If XSposAreaIngran<>XSposAreaIngranPrima.b OR YSposAreaIngran<>YSposAreaIngranPrima.b OR LunAreaIngran<>LunAreaIngranPrima.b
+  XPosLinee.b=XSposAreaIngranPrima:YPosLinee.b=YPosDegliSfondi+YSposAreaIngranPrima
+  Wline XPosLinee+LunAreaIngranPrima-1,YPosLinee,XPosLinee+LunAreaIngranPrima-1,YPosLinee+LunAreaIngranPrima-1,0
+  Wline XPosLinee,YPosLinee+LunAreaIngranPrima-1,XPosLinee+LunAreaIngranPrima-1,YPosLinee+LunAreaIngranPrima-1,0
+ EndIf
+ XPosLinee=XSposAreaIngran:YPosLinee=YPosDegliSfondi+YSposAreaIngran
+ Wline XPosLinee+LunAreaIngran-1,YPosLinee,XPosLinee+LunAreaIngran-1,YPosLinee+LunAreaIngran-1,3
+ Wline XPosLinee,YPosLinee+LunAreaIngran-1,XPosLinee+LunAreaIngran-1,YPosLinee+LunAreaIngran-1,3
+ XSposAreaIngranPrima=XSposAreaIngran:YSposAreaIngranPrima=YSposAreaIngran:LunAreaIngranPrima=LunAreaIngran
+Return
+.Ingrandimento
+ If GrandezzaSfondo*Ingrandimento<#GrandezzaMassimaSfondo
+  WBox XPosAreaIngran,YPosDegliSfondi,XPosAreaIngran+#GrandezzaMassimaSfondo-1,YPosDegliSfondi+#GrandezzaMassimaSfondo-1,3
+ EndIf
+ If XSposAreaIngran MOD 8=0
+  AreaSfondo.l=ADDValue(#AreaGraficaSfondo,XSposAreaIngran,YSposAreaIngran):AreaIngrandimento.l=ADDValue(#AreaGraficaIngran,0,0)
+  Select Ingrandimento
+  Case 2
+   ZoomX2 #AreaGraficaSfondo,#AreaGraficaIngran,AreaSfondo,AreaIngrandimento,LunAreaIngran,LunAreaIngran
+  Case 4
+   ZoomX4 #AreaGraficaSfondo,#AreaGraficaIngran,AreaSfondo,AreaIngrandimento,LunAreaIngran,LunAreaIngran
+  Case 8
+   ZoomX8 #AreaGraficaSfondo,#AreaGraficaIngran,AreaSfondo,AreaIngrandimento,LunAreaIngran,LunAreaIngran
+  End Select
+ Else
+  For YPosDelPunto=YSposAreaIngran To YSposAreaIngran+LunAreaIngran
+   For XPosDelPunto=XSposAreaIngran To XSposAreaIngran+LunAreaIngran
+    Use BitMap #AreaGraficaSfondo
+    ColoreDellIngran=Point(XPosDelPunto,YPosDelPunto)
+    Use BitMap #AreaGraficaIngran
+    XPosDelQuadrato=(XPosDelPunto-XSposAreaIngran)*Ingrandimento
+    YPosDelQuadrato=(YPosDelPunto-YSposAreaIngran)*Ingrandimento
+    Boxf XPosDelQuadrato,YPosDelQuadrato,XPosDelQuadrato+Ingrandimento-1,YPosDelQuadrato+Ingrandimento-1,ColoreDellIngran
+   Next XPosDelPunto
+  Next YPosDelPunto
+ EndIf
+ GrandezzaIngran=Min(GrandezzaSfondo*Ingrandimento,#GrandezzaMassimaSfondo)
+ BitMaptoWindow #AreaGraficaIngran,#Finestra,0,0,XPosAreaIngran,YPosDegliSfondi,GrandezzaIngran,GrandezzaIngran
+Return
+.SelezionaColore
+ If ColoriMisti=True
+  Colore=(XPosDelPunto+YPosDelPunto) MOD 2
+  Select TastoDelTopoPremuto
+  Case #TastoSinistroDelTopo
+   If Colore=0 Then Colore=ColoreDelTastoSinistro Else Colore=ColoreDelTastoDestro
+  Case #TastoDestroDelTopo
+   If Colore=0 Then Colore=ColoreDelTastoDestro Else Colore=ColoreDelTastoSinistro
+  End Select
+ Else
+  Select TastoDelTopoPremuto
+  Case #TastoSinistroDelTopo
+   Colore=ColoreDelTastoSinistro
+  Case #TastoDestroDelTopo
+   Colore=ColoreDelTastoDestro
+  End Select
+ EndIf
+Return
