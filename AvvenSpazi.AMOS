@@ -1,0 +1,463 @@
+'-> Avventura Spaziale by Stefano Maria Regattin
+'i> 9 ottobre 1997 
+'m> 10,11,16,17,18 ottobre 1997    
+'m> 13,17 novembre 1997  
+'m> 11 gennaio 1998
+'------------------- 
+Data "Sole","Mercurio","Venere","Terra","Luna","Marte","Phobos","Deimos"
+Data "Pianetini","Giove","Metis","Adrastea","Amalthea","Thebe","Io","Europa"
+Data "Ganimede","Callisto","Leda","Himalia","Lysithea","Elara","Ananke","Carme"
+Data "Pasiphae","Sinope","Saturno","Atlas","Prometheus","Pandora","Janus"
+Data "Epimetheus","Mimas","Enceladus","Tethys","Telesto","Calypso","Dione"
+Data "Helene","Rhea","Titan","Hyperion","Iapetus","Phoebe","Urano","Cordelia"
+Data "Ophelia","Bianca","Cressida","Desdemona","Juliet","Portia","Rosalind"
+Data "Belinda","Puck","Miranda","Ariel","Umbriel","Titania","Oberon","Nettuno"
+Data "Tritone","Nereide","Plutone","Caronte"
+Screen Open 0,320,256,2,Lowres
+Curs Off 
+Flash Off 
+Palette 0,$FFF
+Dim CORPICELESTI$(64)
+For A=0 To 64
+ Read DATO$
+ CORPICELESTI$(A)=DATO$
+Next A
+For A=0 To 25
+ Proc LETTERA[Chr$(A+65),X,0]
+ Proc LARGHEZZALETTERA[Chr$(A+65)]
+ Add X,Param
+Next A
+X=0
+For A=0 To 25
+ Proc LETTERA[Chr$(A+97),X,14]
+ Proc LARGHEZZALETTERA[Chr$(A+97)]
+ Add X,Param
+Next A
+X=0 : Y=28
+Proc LETTERA["�",X,Y]
+Proc LARGHEZZALETTERA["�"]
+Add X,Param
+Proc LETTERA["�",X,Y]
+Proc LARGHEZZALETTERA["�"]
+Add X,Param
+Proc LETTERA["�",X,Y]
+Proc LARGHEZZALETTERA["�"]
+Add X,Param
+Proc LETTERA["�",X,Y]
+Proc LARGHEZZALETTERA["�"]
+Add X,Param
+Proc LETTERA["�",X,Y]
+Proc LARGHEZZALETTERA["�"]
+Add X,Param
+Proc LETTERA["�",X,Y]
+Proc LARGHEZZALETTERA["�"]
+Add X,Param
+Proc LETTERA["�",X,Y]
+Proc LARGHEZZALETTERA["�"]
+Add X,Param
+For A=0 To 9
+ Proc LARGHEZZALETTERA[Chr$(A+48)]
+ Proc LETTERA[Chr$(A+48),X,Y]
+ Add X,Param
+Next A
+Proc LETTERA["?",X,Y]
+Proc LARGHEZZALETTERA["?"]
+Add X,Param
+Proc LETTERA["!",X,Y]
+Proc LARGHEZZALETTERA["!"]
+Add X,Param
+Proc LETTERA[".",X,Y]
+Proc LARGHEZZALETTERA["."]
+Add X,Param
+Proc LETTERA[",",X,Y]
+Proc LARGHEZZALETTERA[","]
+Add X,Param
+Proc LETTERA[";",X,Y]
+Proc LARGHEZZALETTERA[";"]
+Add X,Param
+Proc LETTERA[":",X,Y]
+Proc LARGHEZZALETTERA[":"]
+Add X,Param
+Proc LETTERA["'",X,Y]
+Proc LARGHEZZALETTERA["'"]
+Add X,Param
+Proc LETTERA[" ",X,Y]
+X=0 : Y=42
+For A=0 To 64
+ Proc LARGHEZZASTRINGA[CORPICELESTI$(A)]
+ If X+Param>319 Then X=0 : Add Y,14
+ Proc DASTRINGAALETTERA[CORPICELESTI$(A),X,Y]
+ X=Param+1
+Next A
+X=0
+Do 
+ Repeat 
+  TASTOPREMUTO$=Inkey$
+ Until TASTOPREMUTO$<>""
+ If TASTOPREMUTO$=Chr$(8)
+  TASTOPREMUTO$=Right$(PAROLA$,1)
+  Proc LARGHEZZALETTERA[TASTOPREMUTO$]
+  If Param>0
+   Add X,-Param
+   Ink 0
+   Bar X,235 To X+Param-1,247
+  End If 
+  PAROLA$=Left$(PAROLA$,Len(PAROLA$)-1)
+ Else 
+  PAROLA$=PAROLA$+TASTOPREMUTO$-Chr$(9)-Chr$(27)
+  Proc LARGHEZZALETTERA[TASTOPREMUTO$]
+  Exit If TASTOPREMUTO$=Chr$(13) or X+Param>319
+  If Param>0
+   Proc LETTERA[TASTOPREMUTO$,X,235]
+   Add X,Param
+  End If 
+ End If 
+ Locate 0,31
+ Cline 
+ Print Left$(PAROLA$,39);
+Loop 
+Procedure DASTRINGAALETTERA[STRINGA$,X,Y]
+For A=1 To Len(STRINGA$)
+ CARATTERE$=Mid$(STRINGA$,A,1)
+ Proc LETTERA[CARATTERE$,X,Y]
+ Proc LARGHEZZALETTERA[CARATTERE$]
+ Add X,Param
+Next A
+End Proc[X]
+Procedure LARGHEZZALETTERA[CARATTERE$]
+Data 7,7,7,7,7,7,7,7,3,7,7,7,10,7,7,7,7,7,7,7,7,7,10,7,7,7
+Data 7,7,7,7,7,5,7,7,3,4,7,3,8,7,7,7,7,5,7,4,7,7,8,7,7,7
+Data 7,7,7,7,3,7,7
+Data 3,7,7,7,7,7,7,7,7,7
+Data 7,3,3,3,3,3,3,7
+Dim LARGHEZZA(76)
+For I=0 To 76
+ Read DATO
+ LARGHEZZA(I)=DATO
+Next I
+I=0
+If CARATTERE$="A"
+ I=1
+Else If CARATTERE$="B"
+ I=2
+Else If CARATTERE$="C"
+ I=3
+Else If CARATTERE$="D"
+ I=4
+Else If CARATTERE$="E"
+ I=5
+Else If CARATTERE$="F"
+ I=6
+Else If CARATTERE$="G"
+ I=7
+Else If CARATTERE$="H"
+ I=8
+Else If CARATTERE$="I"
+ I=9
+Else If CARATTERE$="J"
+ I=10
+Else If CARATTERE$="K"
+ I=11
+Else If CARATTERE$="L"
+ I=12
+Else If CARATTERE$="M"
+ I=13
+Else If CARATTERE$="N"
+ I=14
+Else If CARATTERE$="O"
+ I=15
+Else If CARATTERE$="P"
+ I=16
+Else If CARATTERE$="Q"
+ I=17
+Else If CARATTERE$="R"
+ I=18
+Else If CARATTERE$="S"
+ I=19
+Else If CARATTERE$="T"
+ I=20
+Else If CARATTERE$="U"
+ I=21
+Else If CARATTERE$="V"
+ I=22
+Else If CARATTERE$="W"
+ I=23
+Else If CARATTERE$="X"
+ I=24
+Else If CARATTERE$="Y"
+ I=25
+Else If CARATTERE$="Z"
+ I=26
+Else If CARATTERE$="a"
+ I=27
+Else If CARATTERE$="b"
+ I=28
+Else If CARATTERE$="c"
+ I=29
+Else If CARATTERE$="d"
+ I=30
+Else If CARATTERE$="e"
+ I=31
+Else If CARATTERE$="f"
+ I=32
+Else If CARATTERE$="g"
+ I=33
+Else If CARATTERE$="h"
+ I=34
+Else If CARATTERE$="i"
+ I=35
+Else If CARATTERE$="j"
+ I=36
+Else If CARATTERE$="k"
+ I=37
+Else If CARATTERE$="l"
+ I=38
+Else If CARATTERE$="m"
+ I=39
+Else If CARATTERE$="n"
+ I=40
+Else If CARATTERE$="o"
+ I=41
+Else If CARATTERE$="p"
+ I=42
+Else If CARATTERE$="q"
+ I=43
+Else If CARATTERE$="r"
+ I=44
+Else If CARATTERE$="s"
+ I=45
+Else If CARATTERE$="t"
+ I=46
+Else If CARATTERE$="u"
+ I=47
+Else If CARATTERE$="v"
+ I=48
+Else If CARATTERE$="w"
+ I=49
+Else If CARATTERE$="x"
+ I=50
+Else If CARATTERE$="y"
+ I=51
+Else If CARATTERE$="z"
+ I=52
+Else If CARATTERE$="�"
+ I=53
+Else If CARATTERE$="�"
+ I=54
+Else If CARATTERE$="�"
+ I=55
+Else If CARATTERE$="�"
+ I=56
+Else If CARATTERE$="�"
+ I=57
+Else If CARATTERE$="�"
+ I=58
+Else If CARATTERE$="�"
+ I=59
+Else If CARATTERE$="1"
+ I=60
+Else If CARATTERE$="2"
+ I=61
+Else If CARATTERE$="3"
+ I=62
+Else If CARATTERE$="4"
+ I=63
+Else If CARATTERE$="5"
+ I=64
+Else If CARATTERE$="6"
+ I=65
+Else If CARATTERE$="7"
+ I=66
+Else If CARATTERE$="8"
+ I=67
+Else If CARATTERE$="9"
+ I=68
+Else If CARATTERE$="0"
+ I=69
+Else If CARATTERE$="?"
+ I=70
+Else If CARATTERE$="!"
+ I=71
+Else If CARATTERE$="."
+ I=72
+Else If CARATTERE$=","
+ I=73
+Else If CARATTERE$=";"
+ I=74
+Else If CARATTERE$=":"
+ I=75
+Else If CARATTERE$="'"
+ I=76
+Else If CARATTERE$=" "
+ I=77
+End If 
+If I>0
+ LARGHEZZA=LARGHEZZA(I-1)
+Else 
+ LARGHEZZA=0
+End If 
+End Proc[LARGHEZZA]
+Procedure LARGHEZZASTRINGA[STRINGA$]
+For A=1 To Len(STRINGA$)
+ CARATTERE$=Mid$(STRINGA$,A,1)
+ Proc LARGHEZZALETTERA[CARATTERE$]
+ Add X,Param
+Next A
+End Proc[X]
+Procedure LETTERA[CARATTERE$,X,Y]
+If CARATTERE$="A"
+ Paste Bob X,Y,1
+Else If CARATTERE$="B"
+ Paste Bob X,Y,2
+Else If CARATTERE$="C"
+ Paste Bob X,Y,3
+Else If CARATTERE$="D"
+ Paste Bob X,Y,4
+Else If CARATTERE$="E"
+ Paste Bob X,Y,5
+Else If CARATTERE$="F"
+ Paste Bob X,Y,6
+Else If CARATTERE$="G"
+ Paste Bob X,Y,7
+Else If CARATTERE$="H"
+ Paste Bob X,Y,8
+Else If CARATTERE$="I"
+ Paste Bob X,Y,9
+Else If CARATTERE$="J"
+ Paste Bob X,Y,10
+Else If CARATTERE$="K"
+ Paste Bob X,Y,11
+Else If CARATTERE$="L"
+ Paste Bob X,Y,12
+Else If CARATTERE$="M"
+ Paste Bob X,Y,13
+Else If CARATTERE$="N"
+ Paste Bob X,Y,14
+Else If CARATTERE$="O"
+ Paste Bob X,Y,15
+Else If CARATTERE$="P"
+ Paste Bob X,Y,16
+Else If CARATTERE$="Q"
+ Paste Bob X,Y,17
+Else If CARATTERE$="R"
+ Paste Bob X,Y,18
+Else If CARATTERE$="S"
+ Paste Bob X,Y,19
+Else If CARATTERE$="T"
+ Paste Bob X,Y,20
+Else If CARATTERE$="U"
+ Paste Bob X,Y,21
+Else If CARATTERE$="V"
+ Paste Bob X,Y,22
+Else If CARATTERE$="W"
+ Paste Bob X,Y,23
+Else If CARATTERE$="X"
+ Paste Bob X,Y,24
+Else If CARATTERE$="Y"
+ Paste Bob X,Y,25
+Else If CARATTERE$="Z"
+ Paste Bob X,Y,26
+Else If CARATTERE$="a"
+ Paste Bob X,Y,27
+Else If CARATTERE$="b"
+ Paste Bob X,Y,28
+Else If CARATTERE$="c"
+ Paste Bob X,Y,29
+Else If CARATTERE$="d"
+ Paste Bob X,Y,30
+Else If CARATTERE$="e"
+ Paste Bob X,Y,31
+Else If CARATTERE$="f"
+ Paste Bob X,Y,32
+Else If CARATTERE$="g"
+ Paste Bob X,Y,33
+Else If CARATTERE$="h"
+ Paste Bob X,Y,34
+Else If CARATTERE$="i"
+ Paste Bob X,Y,35
+Else If CARATTERE$="j"
+ Paste Bob X,Y,36
+Else If CARATTERE$="k"
+ Paste Bob X,Y,37
+Else If CARATTERE$="l"
+ Paste Bob X,Y,38
+Else If CARATTERE$="m"
+ Paste Bob X,Y,39
+Else If CARATTERE$="n"
+ Paste Bob X,Y,40
+Else If CARATTERE$="o"
+ Paste Bob X,Y,41
+Else If CARATTERE$="p"
+ Paste Bob X,Y,42
+Else If CARATTERE$="q"
+ Paste Bob X,Y,43
+Else If CARATTERE$="r"
+ Paste Bob X,Y,44
+Else If CARATTERE$="s"
+ Paste Bob X,Y,45
+Else If CARATTERE$="t"
+ Paste Bob X,Y,46
+Else If CARATTERE$="u"
+ Paste Bob X,Y,47
+Else If CARATTERE$="v"
+ Paste Bob X,Y,48
+Else If CARATTERE$="w"
+ Paste Bob X,Y,49
+Else If CARATTERE$="x"
+ Paste Bob X,Y,50
+Else If CARATTERE$="y"
+ Paste Bob X,Y,51
+Else If CARATTERE$="z"
+ Paste Bob X,Y,52
+Else If CARATTERE$="�"
+ Paste Bob X,Y,53
+Else If CARATTERE$="�"
+ Paste Bob X,Y,54
+Else If CARATTERE$="�"
+ Paste Bob X,Y,55
+Else If CARATTERE$="�"
+ Paste Bob X,Y,56
+Else If CARATTERE$="�"
+ Paste Bob X,Y,57
+Else If CARATTERE$="�"
+ Paste Bob X,Y,58
+Else If CARATTERE$="�"
+ Paste Bob X,Y,59
+Else If CARATTERE$="1"
+ Paste Bob X,Y,60
+Else If CARATTERE$="2"
+ Paste Bob X,Y,61
+Else If CARATTERE$="3"
+ Paste Bob X,Y,62
+Else If CARATTERE$="4"
+ Paste Bob X,Y,63
+Else If CARATTERE$="5"
+ Paste Bob X,Y,64
+Else If CARATTERE$="6"
+ Paste Bob X,Y,65
+Else If CARATTERE$="7"
+ Paste Bob X,Y,66
+Else If CARATTERE$="8"
+ Paste Bob X,Y,67
+Else If CARATTERE$="9"
+ Paste Bob X,Y,68
+Else If CARATTERE$="0"
+ Paste Bob X,Y,69
+Else If CARATTERE$="?"
+ Paste Bob X,Y,70
+Else If CARATTERE$="!"
+ Paste Bob X,Y,71
+Else If CARATTERE$="."
+ Paste Bob X,Y,72
+Else If CARATTERE$=","
+ Paste Bob X,Y,73
+Else If CARATTERE$=";"
+ Paste Bob X,Y,74
+Else If CARATTERE$=":"
+ Paste Bob X,Y,75
+Else If CARATTERE$="'"
+ Paste Bob X,Y,76
+Else If CARATTERE$=" "
+ Paste Bob X,Y,77
+End If 
+End Proc
