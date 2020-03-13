@@ -1,0 +1,629 @@
+;-> Avventura by Stefano Maria Regattin
+;i> 19 ottobre 1998
+;m> 25,26,27 ottobre 1998
+;m> 2,3,4,5,9,11,14,15,16,17,19,20,21,22,25,27,30 novembre 1998
+;m> 2,19,20,21,22 dicembre 1998
+;m> 13 gennaio 1999
+;m> 10 agosto 1999
+;m> 28 dicembre 1999
+;m> 27 giugno 2001
+;m> 22 agosto 2001
+;m> 23 dicembre 2003
+;m> 2 giugno 2006
+;-----------------
+;Azioni da compiere:
+;--------------------
+Data$ "Apro","finestra","",""
+Data$ "Prendo","sedia","",""
+Data$ "Metto","sedia","sopra","tavolo"
+Data$ "Salgo","sopra","tavolo",""
+Data$ "Salgo","sopra","sedia",""
+Data$ "Tolgo","lampadina","",""
+Data$ "Scendo","da","sedia",""
+Data$ "Scendo","da","tavolo",""
+Data$ "Prendo","sedia","",""
+Data$ "Vado","dietro","porta",""
+Data$ "Colpisco","uomo","con","sedia"
+;-----------
+;Direzioni:
+;-----------
+Data$ "nord","nordest","est","sudest","sud","sudovest","ovest","nordovest","sopra","sotto"
+;--------------
+;Preposizioni:
+;--------------
+Data$ "di","a","da","in","con","davanti","dentro","dietro","fuori","sopra","sotto"
+;-------
+;Verbi:
+;-------
+Data$ "Accendo","Apro","Cerco","Chiudo","Colpisco","Do","Lascio","Leggo","Metto","Parlo","Prendo","Salgo","Salto","Scendo"
+Data$ "Spengo","Tiro","Tolgo","Vado"
+;-------------
+;Descrizioni:
+;-------------
+Data$ "Ti trovi in una stanza chiusa a chiave. Sei seduto su una sedia.->"
+Data$ " Davanti a te c'e' un tavolo. Piu' in la' c'e' una finestra chiusa, ma->"
+Data$ " non sembra bloccata. Dietro di te c'e' una porta massiccia chiusa a->"
+Data$ " chiave. Dal soffitto, proprio sopra il tavolo, penzola un filo con al->"
+Data$ " termine una lampadina accesa."
+
+Data$ "Ti trovi in una stanza chiusa a chiave. Sei in piedi. Davanti a te->"
+Data$ " c'e' un tavolo. Piu' in la' c'e' una finestra aperta da cui entra->"
+Data$ " la luce della luna. Dietro di te c'e' una sedia. piu' in fondo c'e'->"
+Data$ " una porta massiccia chiusa a chiave. Dal soffitto, proprio sopra il->"
+Data$ " tavolo, penzola un filo con al termine una lampadina accesa."
+
+Data$ "Ti trovi in una stanza chiusa a chiave. Sei in piedi. Tieni una sedia->"
+Data$ " tra le mani. Davanti a te c'e' un tavolo. piu' in la' c'e' una->"
+Data$ " finestra aperta da cui entra la luce della luna. Dietro di te c'e'->"
+Data$ " una porta massiccia chiusa a chiave. Dal soffitto, proprio sopra il->"
+Data$ " tavolo, penzola un filo con al termine una lampadina accesa."
+
+Data$ "Ti trovi in una stanza chiusa a chiave. Sei in piedi. Davanti a te->"
+Data$ " c'e' un tavolo con sopra una sedia. piu' in la' c'e' una finestra->"
+Data$ " aperta da cui entra la luce della luna. Dietro di te c'e' una porta->"
+Data$ " massiccia chiusa a chiave. Dal soffitto, proprio sopra il tavolo,->"
+Data$ " penzola un filo con al termine una lampadina accesa."
+
+Data$ "Ti trovi in una stanza chiusa a chiave. Sei in piedi sopra un tavolo.->"
+Data$ " Davanti a te c'e' una sedia. piu' in la' c'e' una finestra aperta da->"
+Data$ " cui entra la luce della luna. Dietro di te c'e' una porta massiccia->"
+Data$ " chiusa a chiave. Dal soffitto, proprio sopra il tavolo, penzola un->"
+Data$ " filo con al termine una lampadina accesa."
+
+Data$ "Ti trovi in una stanza chiusa a chiave. Sei in piedi sopra una sedia->"
+Data$ " che sta sopra un tavolo. piu' in la' c'e' una finestra aperta da cui->"
+Data$ " entra la luce della luna. Davanti a te c'e' un filo con al termine una->"
+Data$ " lampadina accesa. Piu' in basso dietro di te c'e' una porta massiccia->"
+Data$ " chiusa a chiave."
+
+Data$ "Ti trovi dentro una stanza chiusa a chiave. La luce della luna che->"
+Data$ " entra dalla finestra ti permette di vedere cosa c'e' nella stanza.->"
+Data$ " Sei in piedi sopra una sedia che sta sopra un tavolo. Davanti a te->"
+Data$ " c'e' un filo con al termine un portalampadina. Piu' in basso dietro di->"
+Data$ " te c'e' una porta massiccia chiusa a chiave."
+
+Data$ "Ti trovi dentro una stanza chiusa a chiave. La luce della luna che->"
+Data$ " entra dalla finestra ti permette di vedere cosa c'e' nella stanza.->"
+Data$ " Sei in piedi sopra un tavolo. Davanti a te c'e' una sedia. Dietro di->"
+Data$ " te c'e' una porta massiccia chiusa a chiave. Dal soffitto penzola un->"
+Data$ " filo con al termine un portalampadina."
+
+Data$ "Ti trovi dentro una stanza chiusa a chiave. La luce della luna che->"
+Data$ " entra dalla finestra ti permette di vedere cosa c'e' nella stanza.->"
+Data$ " Sei in piedi. Davanti a te c'e' un tavolo con sopra una sedia.->"
+Data$ " Dietro di te c'e' una porta massiccia chiusa a chiave. Dal soffitto->"
+Data$ " penzola un filo con al termine un portalampadina."
+
+Data$ "Ti trovi dentro una stanza chiusa a chiave. La luce della luna che->"
+Data$ " entra dalla finestra ti permette di vedere cosa c'e' nella stanza.->"
+Data$ " Sei in piedi. Tieni una sedia tra le mani. Davanti a te c'e' un->"
+Data$ " tavolo. Dietro di te c'e' una porta massiccia chiusa a chiave. Dal->"
+Data$ " soffitto penzola un filo con al termine un portalampadina."
+
+Data$ "Ti trovi dentro una stanza. La luce della luna che entra dalla finestra->"
+Data$ " ti permette di vedere cosa c'e' nella stanza. Sei in piedi. Tieni una->"
+Data$ " sedia tra le mani. Ti trovi dietro la porta. Nel centro della stanza->"
+Data$ " c'e' un tavolo. Davanti a te c'e' la porta aperta che ti nasconde. Dal->"
+Data$ " soffitto penzola un filo con al termine un portalampadina. Un uomo e'->"
+Data$ " entrato nella stanza."
+;-------------
+;Avvenimenti:
+;-------------
+Data$ "Eri tranquillo per i fatti tuoi per strada quando una macchina te->"
+Data$ " la sbarra; dalla macchina scendono due energumeni, uno ti blocca e->"
+Data$ " l'altro ti tramortisce. Perdi i sensi. Ti risvegli in una stanza->"
+Data$ " sconosciuta. Non sai che ora e'. Una voce da fuori dice: <presto uno di->"
+Data$ " noi verra' a prenderti per interrogarti!> Tu desideri solo trovare una->"
+Data$ " via di fuga..."
+
+Data$ "Hai aperto la finestra. E' troppo piccola per passarci attraverso. Vedi->"
+Data$ " la luce della luna. E' notte..."
+Data$ "Hai preso la sedia..."
+Data$ "Hai messo la sedia sopra il tavolo..."
+Data$ "Sei salito sopra il tavolo..."
+Data$ "Sei salito sopra la sedia..."
+Data$ "Hai tolto la lampadina..."
+Data$ "Sei sceso dalla sedia..."
+Data$ "Sei sceso dal tavolo..."
+Data$ "Hai preso ancora la sedia..."
+Data$ "Sei andato dietro la porta. Dopo pochi minuti senti dei passi nella tua->"
+Data$ " direzione. Senti il rumore della serratura della porta che scatta. Un->"
+Data$ " uomo apre la porta e dice: <Accidenti! si e' fulminata la lampadina!->"
+Data$ " Tu! vieni fuori che ti devo interrogare!> Non filtra luce dall'esterno."
+Data$ "Hai colpito l'uomo alla testa con la sedia. L'uomo e'crollato a terra->"
+Data$ " tramortito. Nessuno ti ha visto. Puoi fuggire indisturbato. Uscito->"
+Data$ " dall'edificio percorri un breve tratto a piedi prima di incrociare->"
+Data$ " una strada. Fermi la prima macchina che passa e ti fai accompagnare->"
+Data$ " alla piu' vicina stazione di polizia per raccontare tutto. Scortato->"
+Data$ " dalla polizia ritorni nel luogo della tua prigionia e fai arrestare i->"
+Data$ " tuoi rapitori."
+
+;actions
+#Azioni=10
+
+;window identifier number
+#Finestra=0
+
+;window closed event
+#HaiChiusoLaFinestra=512; $200
+
+;prepositions
+#Preposizioni=10
+
+;workbench screen identifier number
+#SchermoWB=0
+
+;space char ascii value
+#Spazio=32
+
+;verbs
+#Verbi=17
+
+;font height
+AltezzaFonte.b=8
+
+;workbench title bar height
+AltezzaBarraSchermo.b=AltezzaFonte+3
+
+;window event
+EventoFinestra.l=0
+
+;letters width
+LarghezzaLettere.b=8
+
+;separator letter
+LetteraSeparatrice.w=0
+
+;action position
+PosizioneAzione.b=0
+
+;press a key message string
+PremiUnTasto$="Premi un tasto..."
+
+;press a key message string x position
+XPremiUnTasto.w=0
+
+
+NEWTYPE .Azione
+ Verbo$
+ SecondaParola$
+ TerzaParola$
+ QuartaParola$
+End NEWTYPE
+
+Statement FondoFinestra{}
+ WPrintScroll
+End Statement
+
+Dim AzioniDaCompiere.Azione(#Azioni)
+For Contatore.b=0 To #Azioni
+ Read AzioniDaCompiere(Contatore)\Verbo
+ Read AzioniDaCompiere(Contatore)\SecondaParola
+ Read AzioniDaCompiere(Contatore)\TerzaParola
+ Read AzioniDaCompiere(Contatore)\QuartaParola
+Next Contatore
+
+Dim Direzione$(9)
+For Contatore=0 To 9
+ Read Direzione$(Contatore)
+Next Contatore
+
+Dim Preposizione$(#Preposizioni)
+For Contatore=0 To #Preposizioni
+ Read Preposizione$(Contatore)
+Next Contatore
+
+Dim Verbo$(#Verbi)
+For Contatore=0 To #Verbi
+ Read Verbo$(Contatore)
+Next Contatore
+
+Dim Descrizione$(#Azioni)
+Contatore=0
+Repeat
+ If IncollaStringa=True
+  Contatore-1
+ Else
+  If Contatore=#Azioni+1 Then Pop Repeat:Goto FinePrimoCicloInfinito
+ EndIf
+ Read Dato$
+ If Right$(Dato$,2)="->"
+  Dato$=UnLeft$(Dato$,2)
+  IncollaStringa=True
+ Else
+  IncollaStringa=False
+ EndIf
+ Descrizione$(Contatore)+Dato$
+ Contatore+1
+Until False
+FinePrimoCicloInfinito
+
+Dim Avvenimento$(#Azioni+1)
+Contatore=0
+Repeat
+ If IncollaStringa=True
+  Contatore-1
+ Else
+  If Contatore=#Azioni+2 Then Pop Repeat:Goto FineSecondoCicloInfinito
+ EndIf
+ Read Dato$
+ If Right$(Dato$,2)="->"
+  Dato$=UnLeft$(Dato$,2)
+  IncollaStringa=True
+ Else
+  IncollaStringa=False
+ EndIf
+ Avvenimento$(Contatore)+Dato$
+ Contatore+1
+Until False
+FineSecondoCicloInfinito
+
+Statement Descrizione{Descrizione$}
+SHARED AltezzaFonte
+SHARED EventoFinestra
+SHARED LarghezzaLettere
+SHARED PremiUnTasto$
+SHARED XPremiUnTasto
+ If EventoFinestra=#HaiChiusoLaFinestra Then Statement Return
+ PosizioneParola.w=1
+ Repeat
+  Spazio.w=Instr(Descrizione$," ",PosizioneParola)
+  If Spazio=0
+   Parola$=Mid$(Descrizione$,PosizioneParola)
+  Else
+   Parola$=Mid$(Descrizione$,PosizioneParola,Spazio-PosizioneParola)
+  EndIf
+  If WCursY+AltezzaFonte-1+AltezzaFonte>InnerHeight-1
+   WColour 0,1
+   WLocate XPremiUnTasto,WCursY:Print PremiUnTasto$
+   WColour 1,0
+   EventoFinestra=WaitEvent
+   If EventoFinestra=#HaiChiusoLaFinestra Then Statement Return
+   FlushEvents
+   WCls
+   WLocate 0,0
+  Else
+   LunghezzaParola.w=TextLength_(RastPort(#Finestra),Parola$,Len(Parola$))
+   If WCursX+LunghezzaParola>InnerWidth Then NPrint ""
+  EndIf
+  Print Parola$," "
+  PosizioneParola+Len(Parola$)+1
+ Until PosizioneParola>Len(Descrizione$)
+ NPrint ""
+ FondoFinestra{}
+End Statement
+
+Statement ControllaAzione{}
+SHARED QuartaParola$
+SHARED SecondaParola$
+SHARED TerzaParola$
+SHARED Verbo$
+SHARED EventoFinestra
+SHARED PosizioneAzione
+SHARED Avvenimento$()
+SHARED AzioniDaCompiere()
+ If Verbo$=AzioniDaCompiere(PosizioneAzione)\Verbo
+  If SecondaParola$=AzioniDaCompiere(PosizioneAzione)\SecondaParola
+   If TerzaParola$=AzioniDaCompiere(PosizioneAzione)\TerzaParola
+    If QuartaParola$=AzioniDaCompiere(PosizioneAzione)\QuartaParola
+     PosizioneAzione+1
+     Descrizione{Avvenimento$(PosizioneAzione)}
+     If PosizioneAzione=1
+      WTitle "Avventura by Stefano Regattin-"+Str$(PosizioneAzione)+" azione giusta su "+Str$(#Azioni+1)
+     Else
+      WTitle "Avventura by Stefano Regattin-"+Str$(PosizioneAzione)+" azioni giuste su "+Str$(#Azioni+1)
+     EndIf
+     If PosizioneAzione=#Azioni+1
+      NPrint "Hai completato l'avventura!"
+      FondoFinestra{}
+      WaitEvent
+      EventoFinestra=#HaiChiusoLaFinestra
+     EndIf
+    Else
+     NPrint "Non e' l'azione giusta!"
+     FondoFinestra{}
+    EndIf
+   Else
+    NPrint "Non e' l'azione giusta!"
+    FondoFinestra{}
+   EndIf
+  Else
+   NPrint "Non e' l'azione giusta!"
+   FondoFinestra{}
+  EndIf
+ Else
+  NPrint "Non e' l'azione giusta!"
+  FondoFinestra{}
+ EndIf
+End Statement
+
+Function Direzione{Parola$}
+SHARED Direzione$()
+Direzione=True
+For Contatore.b=0 To 9
+ If Parola$=Direzione$(Contatore) Then Direzione=Contatore
+Next Contatore
+Function Return Direzione
+End Function
+
+Statement ParoleDisponibili{}
+SHARED Direzione$()
+SHARED Preposizione$()
+SHARED Verbo$()
+SHARED EventoFinestra
+SHARED LarghezzaLettere
+SHARED PremiUnTasto$
+SHARED XPremiUnTasto
+
+ NPrint "Verbi disponibili:"
+ FondoFinestra{}
+ For Contatore.b=0 To #Verbi
+  Verbo$=Verbo$(Contatore)
+  LunghezzaParola.w=TextLength_(RastPort(#Finestra),Verbo$,Len(Verbo$))
+  If WCursX+LunghezzaParola>InnerWidth
+   NPrint ""
+   FondoFinestra{}
+  EndIf
+  WColour 2,3
+  Print Verbo$
+  WColour 1,0
+  Print " "
+ Next Contatore
+ NPrint ""
+ FondoFinestra{}
+ NPrint "Preposizioni disponibili:"
+ FondoFinestra{}
+ For Contatore=0 To #Preposizioni
+  WColour 2,3
+  Print Preposizione$(Contatore)
+  WColour 1,0
+  Print " "
+ Next Contatore
+ NPrint ""
+ FondoFinestra{}
+ NPrint "Direzioni disponibili:"
+ FondoFinestra{}
+ For Contatore=0 To 9
+  WColour 2,3
+  Print Direzione$(Contatore)
+  WColour 1,0
+  Print " "
+ Next Contatore
+ NPrint " "
+ FondoFinestra{}
+ NPrint "Per tornare qui:"
+ FondoFinestra{}
+ WColour 2,3
+ Print "?"
+ WColour 1,0
+ Print " o "
+ WColour 2,3
+ NPrint "Aiuto"
+ WColour 1,0
+ FondoFinestra{}
+ NPrint "Per uscire:"
+ FondoFinestra{}
+ WColour 2,3
+ Print "Esco"
+ WColour 1,0
+ Print " "
+ WColour 2,3
+ Print "da"
+ WColour 1,0
+ Print " "
+ WColour 2,3
+ NPrint "avventura"
+ FondoFinestra{}
+ WColour 0,1
+ WLocate XPremiUnTasto,WCursY:Print PremiUnTasto$
+ WColour 1,0
+ Print ""
+ FondoFinestra{}
+ EventoFinestra=WaitEvent
+ If EventoFinestra=#HaiChiusoLaFinestra Then Statement Return
+End Statement
+
+Function Preposizione{Parola$}
+SHARED Preposizione$()
+Preposizione.b=True
+For Contatore.b=0 To #Preposizioni
+ If Parola$=Preposizione$(Contatore) Then Preposizione=Contatore
+Next Contatore
+Function Return Preposizione
+End Function
+
+Function Verbo{}
+SHARED Verbo$
+SHARED Verbo$()
+ Verbo.b=True
+ For Contatore.b=0 To #Verbi
+  If Verbo$=Verbo$(Contatore) Then Verbo=Contatore
+ Next Contatore
+Function Return Verbo
+End Function
+
+;************************************************
+;* Fine delle procedure ed inizio del programma *
+;******* Procedures end and program start *******
+;************************************************
+
+WBStartup
+
+OpenFontPrefs
+NuovaAltezzaFonte.b=DefaultFontHeight(1)
+NuovaAltezzaBarraSchermo.b=DefaultFontHeight(2)
+CloseFontPrefs
+
+If NuovaAltezzaFonte>0 Then AltezzaFonte=NuovaAltezzaFonte
+If NuovaAltezzaBarraSchermo>0 Then AltezzaBarraSchermo=NuovaAltezzaBarraSchermo
+
+WbToScreen #SchermoWB
+ShowScreen #SchermoWB
+
+MenusOff
+CaseSense Off
+Cursor 0
+
+IndirizzoSchermo.l=Peek.l(Addr Screen(0))
+LarghezzaSchermo.w=Peek.w(IndirizzoSchermo+12)
+AltezzaSchermo.w=Peek.w(IndirizzoSchermo+14)
+Window #Finestra,0,AltezzaBarraSchermo,LarghezzaSchermo,AltezzaSchermo-AltezzaBarraSchermo,$140C,"",-1,-1
+TitoloFinestra$="Avventura by Stefano Maria Regattin-"+Str$(PosizioneAzione)+" azioni giuste su "+Str$(#Azioni+1)
+WTitle TitoloFinestra$,"Sintassi: PrimaParola[ SecondaParola[ TerzaParola[ QuartaParola]]]"
+
+LarghezzaLettere=TextLength_(RastPort(#Finestra)," ",Len(" "))
+XPremiUnTasto=TextLength_(RastPort(#Finestra),PremiUnTasto$,Len(PremiUnTasto$))
+XPremiUnTasto=(InnerWidth-XPremiUnTasto)/2
+PremiUnTasto$=SPACE$(XPremiUnTasto)+PremiUnTasto$+SPACE$(XPremiUnTasto)
+XPremiUnTasto=TextLength_(RastPort(#Finestra),PremiUnTasto$,Len(PremiUnTasto$))
+XPremiUnTasto=(InnerWidth-XPremiUnTasto)/2
+
+ParoleDisponibili{}
+Descrizione{Avvenimento$(0)}
+
+While EventoFinestra<>#HaiChiusoLaFinestra
+ Descrizione{Descrizione$(PosizioneAzione)}
+ Print"Digita>"
+ EventoFinestra=WaitEvent
+ TestoDigitato$=Edit$(80)
+ FondoFinestra{}
+ TestoDigitato$=LCase$(StripLead$(TestoDigitato$,32))
+ If TestoDigitato$=""
+  NPrint "Non hai digitato niente!"
+  FondoFinestra{}
+ Else
+  PosizioneParola=1
+  Spazio=Instr(TestoDigitato$," ",PosizioneParola)
+  If Spazio=0
+   Verbo$=TestoDigitato$
+   Verbo$=UCase$(Left$(Verbo$,1))+Right$(Verbo$,Len(Verbo$)-1)
+   If Verbo{}=True
+    Select Verbo$
+    Case "?"
+     ParoleDisponibili{}
+    Case "Aiuto"
+     ParoleDisponibili{}
+    Default
+     NPrint "La prima parola non e' un verbo consentito!"
+     FondoFinestra{}
+    End Select
+   Else
+    NPrint "Devi indicare la seconda parola dopo il verbo!"
+    FondoFinestra{}
+   EndIf
+  Else
+   Verbo$=Mid$(TestoDigitato$,PosizioneParola,Spazio-PosizioneParola)
+   Verbo$=UCase$(Left$(Verbo$,1))+Right$(Verbo$,Len(Verbo$)-1)
+   Repeat
+    LetteraSeparatrice=Asc(Mid$(TestoDigitato$,Spazio+1,1))
+    If LetteraSeparatrice=#Spazio Then Spazio+1 Else PosizioneParola=Spazio+1
+   Until LetteraSeparatrice<>#Spazio
+   Spazio=Instr(TestoDigitato$," ",PosizioneParola)
+   If Spazio=0
+    SecondaParola$=LCase$(Right$(TestoDigitato$,Len(TestoDigitato$)-PosizioneParola+1))
+    If Verbo{}=True
+     NPrint "La prima parola non e' un  verbo consentito!"
+     FondoFinestra{}
+    Else
+     Print "Verbo>"
+     WColour 2,3
+     Print Verbo$
+     WColour 1,0
+     If Verbo$="Vado"
+      If Direzione{SecondaParola$}=True
+       NPrint "La seconda parola non e' una direzione!"
+      Else
+       Print "<direzione>"
+       WColour 2,3
+       Print SecondaParola$
+       WColour 1,0
+       NPrint "<"
+       FondoFinestra{}
+       TerzaParola$="":QuartaParola$="":ControllaAzione{}
+      EndIf
+     Else
+      NPrint "<seconda parola>",SecondaParola$,"<"
+      FondoFinestra{}
+      TerzaParola$="":QuartaParola$="":ControllaAzione{}
+     EndIf
+    EndIf
+   Else
+    SecondaParola$=LCase$(Mid$(TestoDigitato$,PosizioneParola,Spazio-PosizioneParola))
+    Repeat
+     LetteraSeparatrice=Asc(Mid$(TestoDigitato$,Spazio+1,1))
+     If LetteraSeparatrice=#Spazio Then Spazio+1 Else PosizioneParola=Spazio+1
+    Until LetteraSeparatrice<>#Spazio
+    Spazio=Instr(TestoDigitato$," ",PosizioneParola)
+    If Spazio=0
+     TerzaParola$=LCase$(Right$(TestoDigitato$,Len(TestoDigitato$)-PosizioneParola+1))
+     If Verbo{}=True
+      If Verbo$="Esco" AND SecondaParola$="da" AND TerzaParola$="avventura"
+       EventoFinestra=#HaiChiusoLaFinestra
+      Else
+       NPrint "La prima parola non e' un verbo consentito!"
+       FondoFinestra{}
+      EndIf
+     Else
+      If Preposizione{SecondaParola$}=True
+       NPrint SecondaParola$," non e' una preposizione!"
+       FondoFinestra{}
+      Else
+       Print "Verbo>"
+       WColour 2,3
+       Print Verbo$
+       WColour 1,0
+       Print "<preposizione>"
+       WColour 2,3
+       Print SecondaParola$
+       WColour 1,0
+       If Verbo$="Vado"
+        If Direzione{TerzaParola$}=True
+         NPrint "<terza parola>",TerzaParola$,"<"
+        Else
+         Print "<direzione>"
+         WColour 2,3
+         Print TerzaParola$
+         WColour 1,0
+         NPrint "<"
+        EndIf
+       Else
+        NPrint "<terza parola>",TerzaParola$,"<"
+       EndIf
+       FondoFinestra{}
+       QuartaParola$="":ControllaAzione{}
+      EndIf
+     EndIf
+    Else
+     TerzaParola$=LCase$(Mid$(TestoDigitato$,PosizioneParola,Spazio-PosizioneParola))
+     Repeat
+      LetteraSeparatrice=Asc(Mid$(TestoDigitato$,Spazio+1,1))
+      If LetteraSeparatrice=#Spazio Then Spazio+1 Else PosizioneParola=Spazio+1
+     Until LetteraSeparatrice<>#Spazio
+     If Verbo{}=True
+      NPrint "La prima parola non e' un verbo consentito!"
+      FondoFinestra{}
+     Else
+      QuartaParola$=LCase$(Right$(TestoDigitato$,Len(TestoDigitato$)-PosizioneParola+1))
+      If Preposizione{TerzaParola$}=True
+       NPrint TerzaParola$," non e' una preposizione!"
+       FondoFinestra{}
+      Else
+       Print "Verbo>"
+       WColour 2,3
+       Print Verbo$
+       WColour 1,0
+       Print "<seconda parola>",SecondaParola$,"<preposizione>"
+       WColour 2,3
+       Print TerzaParola$
+       WColour 1,0
+       NPrint "<quarta parola>",QuartaParola$,"<"
+       FondoFinestra{}
+       ControllaAzione{}
+      EndIf
+     EndIf
+    EndIf
+   EndIf
+  EndIf
+ EndIf
+Wend
+End
