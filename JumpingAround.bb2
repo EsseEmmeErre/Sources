@@ -1,0 +1,2045 @@
+;-> JumpingAround by Stefano Maria Regattin
+;d> 17 agosto 1999 da Frontiera
+;m> 18,19,20,21,22,23,24,25,26,27,31 agosto 1999
+;m> 1,2,3,4,5,6,9,11,12,13,14,16,27 settembre 1999
+;m> 4,12,26 ottobre 1999
+;m> 22,23,24,26 novembre 1999
+;m> 6,13,19,20,27 dicembre 1999
+;m> 19,20,21,29 febbraio 2000
+;m> 8,11 marzo 2000
+;m> 2,3,10,11,12,13,15,17,21 maggio 2000
+;m> 5 giugno 2000
+;m> 1,4,14 luglio 2000
+;m> 1 settembre 2000
+;m> 17 gennaio 2001
+;m> 4,16,17,18,19 febbraio 2001
+;m> 1 marzo 2001
+;m> 3,24,29 aprile 2001
+;m> 21,22 maggio 2001
+;m> 11,16,21,22,23,24 novembre 2001
+;m> 2,9,12,13,16,21,30,31 dicembre 2001
+;m> 9,13,14,15 gennaio 2002
+;m> 1 agosto 2002
+;m> 4 settembre 2002
+;m> primo maggio 2003
+;m> 19 maggio 2003
+;m> Ferragosto, 16 agosto 2003
+;m> 23 ottobre 2003
+;m> 7,14,20 gennaio 2007
+;m> 25 febbraio 2007
+;m> 8 dicembre 2009
+;m> 5 gennaio 2010
+;m> 24 novembre 2017
+;m> 20,21 dicembre 2017
+;m> 5 gennaio 2018
+;m> 23 gennaio 2019
+;-------------------
+
+JMP InizioDelProgramma
+
+Dc.b "$VER: JumpingAround 1.4 (23.1.2019)"
+
+Even
+
+InizioDelProgramma
+
+#BottoneDimensionamentoFinestra=1
+#SpostamentoFinestra=2
+#ProfonditaFinestra=4
+#BottoneChiusuraFinestra=8
+#RicordaDisegnoDestra=16; $10
+#RicordaDisegnoSotto=32;  $20
+#FinestraComeSfondo=256;  $100
+#DammiZeroZero=1024;      $400
+#FinestraSenzaBordo=2048; $800
+#FinestraAttiva=4096;     $1000
+
+#HaiPremutoUnTastoDelTopo=8
+#HaiPremutoUnBottone=32;   $20
+#HaiRilasciatoUnBottone=64;$40
+#HaiChiusoLaFinestra=512;  $200
+#HaiPremutoUnTasto=1024;   $400
+
+#BarraOrizzontale=0
+#BarraVerticale=1
+#MovimentoOrizzontale=64
+#MovimentoVerticale=128
+
+#UnColoreSolo=0
+#DueColori=1
+
+#AltezzaBitmap=16*16
+#AltezzaFonteSteMar002=9
+#AltezzaMappa=32
+#BitmapSchermo=0
+#Fonte=0
+#LarghezzaBitmap=16*21
+#LarghezzaMappa=40
+
+#Vuoto=0
+#Bordo=1
+#Piattaforma=2
+#Scala=3
+#ScalaSuPiattaforma=4
+#LogoAmiga=5
+#EssereOstile=77
+#Draghetto=85
+
+#_PlayB=1
+#_ReverseB=2
+#_ForwardB=4
+#_GreenB=8
+#_YellowB=16
+#_RedB=32
+#_BlueB=64
+
+#DirezioneSuJoypad=0
+#DirezioneDestraJoypad=2
+#DirezioneGiuJoypad=4
+#DirezioneSinistraJoypad=6
+#NessunaDirezioneLevaJoypad=8
+
+#Escape=27
+#CursorUp=28
+#CursorDown=29
+#CursorRight=30
+#CursorLeft=31
+
+#SuonoUno=0
+#SuonoDue=1
+#SuonoTre=2
+#SuonoQuattro=3
+#SuonoCinque=4
+#SuonoSei=5
+
+#MassimoEsseriOstili=50
+
+#Schermo=0
+#Finestra=0
+#ListaBottoni=0
+#ProfonditaSchermo=5
+#TavolozzaColori=0
+
+#_BackGreen=0
+#_White=1
+#_Grey1=2
+#_Grey2=3
+#_Grey3=4
+#_Grey4=5
+#_Grey5=6
+#_Black=7
+#_Red=8
+#_Yellow=9
+#_Green=10
+#_Cyan=11
+#_Blue=12
+#_DarkPurple=13
+#_LightPurple=14
+#_Pink4=15
+#_Pink3=16
+#_Pink2=17
+#_Pink1=18
+#_LightBlue4=19
+#_LightBlue3=20
+#_LightBlue2=21
+#_LightBlue1=22
+#_Orange5=23
+#_Orange4=24
+#_Orange3=25
+#_Orange2=26
+#_Orange1=27
+#_DarkRed=28
+#_DarkYellow=29
+#_DarkCyan=30
+#_DarkBlue=31
+
+#RitardoMessaggi=100
+
+DEFTYPE .b AltezzaFonte,DirezioneSalto,MossaMappaConITasti,MossaMappaConLeBarre
+DEFTYPE .b SeiBloccato,StaiCadendo,StaiCalciando
+DEFTYPE .b TiStaiMuovendo,TiStaiMuovendoColJoypad
+DEFTYPE .q TempoSalto
+DEFTYPE .w
+
+Dim MappaBlocchi.b(#LarghezzaMappa-1,#AltezzaMappa-1)
+
+NEWTYPE .EssereOstile
+X.w
+Y.w
+XNellaMappa.w
+YNellaMappa.w
+Immagine.b
+ImmagineCancellata.b
+Movimento.b
+Vite.b
+Calciato.b
+End NEWTYPE
+Dim EssereOstile.EssereOstile(#MassimoEsseriOstili-1)
+
+TastoCursoreSu$=Chr$(#CursorUp)
+TastoCursoreGiu$=Chr$(#CursorDown)
+TastoCursoreDestra$=Chr$(#CursorRight)
+TastoCursoreSinistra$=Chr$(#CursorLeft)
+TastoEsc$=Chr$(#Escape)
+
+IconaProgramma$=ProgPath$+".info"
+TitoloSchermo$="JumpingAround-Stefano M. Regattin"
+TitoloFinestra$="www.stefanomaria.altervista.org"
+
+AggiustaLaPosizioneDopoIlSalto.b=False
+AltezzaMassimaSalto.q=Pi/2
+EventoFinestra.l=0
+ImmagineGiocatore.b=96
+Informazioni.b=False
+Livello.b=0
+LivelloTerminato.b=False
+Punteggio.l=0
+SuonoCaduta.b=False
+Tasto.l=0
+ViteGiocatore.b=3
+
+XMappaFuori.b=#LarghezzaMappa-(#LarghezzaBitmap/16-2)
+YMappaFuori.b=#AltezzaMappa-(#AltezzaBitmap/16-2)
+
+XS=16
+YS=16
+
+Statement Aspetta{TempoDaAspettare.l}
+SHARED EventoFinestra
+SHARED Tasto
+ If TempoDaAspettare>0 Then TempoTrascorso.l=Timer
+ EventoFinestra=0
+ Tasto=0
+ Repeat
+  EventoFinestra=Event
+  VWait
+  Select EventoFinestra
+  Case #HaiPremutoUnTastoDelTopo
+   TastoPremutoDelTopo.b=MButtons
+   If TastoPremutoDelTopo>0
+    Tasto=-TastoPremutoDelTopo
+    FineCicloDiAttesa.b=True
+   EndIf
+  Case #HaiChiusoLaFinestra
+   FineCicloDiAttesa=True
+  Case #HaiPremutoUnTasto
+   TastoGrigio.l=(Qualifier-$8000)*256
+   If TastoGrigio>0
+    Tasto=TastoGrigio
+    FineCicloDiAttesa=True
+   EndIf
+   TastoPremuto$=Inkey$
+   If TastoPremuto$<>""
+    Tasto=Asc(TastoPremuto$)
+    FineCicloDiAttesa=True
+   EndIf
+  Default
+   TastoPremutoDelJoypad.b=Gameb(1)
+   If TastoPremutoDelJoypad>0
+    Tasto=-TastoPremutoDelJoypad*8
+    FineCicloDiAttesa=True
+   EndIf
+  End Select
+  If TempoDaAspettare>0
+   If Timer-TempoTrascorso>TempoDaAspettare Then FineCicloDiAttesa=True
+  EndIf
+ Until FineCicloDiAttesa=True
+End Statement
+
+Statement AnteprimaLivello{}
+SHARED Livello
+SHARED MappaBlocchi()
+ XOffsetBlocchi=(InnerWidth-7*#LarghezzaMappa-2)/2
+ YOffsetBlocchi=(InnerHeight-7*#AltezzaMappa-2)/2
+ WJam #DueColori:WCls
+ X0Blocchi=XOffsetBlocchi
+ Y0Blocchi=YOffsetBlocchi
+ X1Blocchi=XOffsetBlocchi+7*#LarghezzaMappa+2
+ Y1Blocchi=YOffsetBlocchi+7*#AltezzaMappa+2
+ WBox X0Blocchi,Y0Blocchi,X1Blocchi,Y1Blocchi,#_White
+ For YBlocco=0 To #AltezzaMappa-1
+  For XBlocco=0 To #LarghezzaMappa-1
+   Blocco.b=MappaBlocchi(XBlocco,YBlocco)
+   WLocate X0Blocchi+1+7*XBlocco,Y0Blocchi+1+7*YBlocco
+   Select Blocco
+   Case #Draghetto
+    WColour #_LightBlue4,#_Blue:Print "D"
+   Case #EssereOstile
+    WColour #_DarkPurple,#_Red:Print "H"
+   Case #LogoAmiga
+    WColour #_Black,#_Red:Print "A"
+   Case #ScalaSuPiattaforma
+    WColour #_Orange4,#_Orange5:Print "|"
+   Case #Scala
+    WColour #_Orange3,#_Orange4:Print "|"
+   Case #Piattaforma
+    WColour #_Grey3,#_Grey4:Print "-"
+   Case #Bordo
+    WColour #_Grey4,#_Grey5:Print "X"
+   Case #Vuoto
+    WColour #_BackGreen,#_BackGreen:Print " "
+   End Select
+  Next XBlocco
+ Next YBlocco
+ Wline X0Blocchi,Y1Blocchi,X1Blocchi,Y1Blocchi,X1Blocchi,Y0Blocchi,#_White
+ WJam #UnColoreSolo
+ Messaggio$="* Get ready for level "+Str$(Livello)+"! *"
+ LunghezzaTesto=TextLength_(RastPort(#Finestra),Messaggio$,Len(Messaggio$))
+ XTesto=(InnerWidth-LunghezzaTesto)/2
+ YTesto=(InnerHeight-9)/2
+ WLocate XTesto,YTesto:WColour #_White,#_BackGreen:Print Messaggio$
+End Statement
+
+Statement PosizionaIlGiocatore{}
+SHARED GiocatoreInvulnerabile
+SHARED NuovaXMappa
+SHARED NuovaYMappa
+SHARED XGiocatore
+SHARED XGiocatoreNellaMappa
+SHARED YGiocatore
+SHARED YGiocatoreNellaMappa
+SHARED MappaBlocchi()
+ For YBlocco=1 To #AltezzaMappa-2
+  For XBlocco=1 To #LarghezzaMappa-2
+   If MappaBlocchi(XBlocco,YBlocco)=#Draghetto
+    XGiocatoreNellaMappa=XBlocco
+    YGiocatoreNellaMappa=YBlocco
+    XGiocatore=16*XGiocatoreNellaMappa+8
+    YGiocatore=16*YGiocatoreNellaMappa+8
+    MappaBlocchi(XBlocco,YBlocco)=#Vuoto
+    GiocatoreInvulnerabile=1
+    NuovaXMappa=XGiocatoreNellaMappa
+    If NuovaXMappa<0 Then NuovaXMappa=0
+    If NuovaXMappa+18>#LarghezzaMappa-1 Then NuovaXMappa=#LarghezzaMappa-1-18
+    NuovaYMappa=YGiocatoreNellaMappa
+    If NuovaYMappa<0 Then NuovaYMappa=0
+    If NuovaYMappa+13>#AltezzaMappa-1 Then NuovaYMappa=#AltezzaMappa-1-13
+    Statement Return
+   EndIf
+  Next XBlocco
+ Next YBlocco
+End Statement
+
+Function$ ControllaITooltype{ToolType$}
+ If Left$(ToolType$,1)=Chr$(34) AND Right$(ToolType$,1)=Chr$(34)
+  ToolType$=UnLeft$(UnRight$(ToolType$,1),1)
+ EndIf
+ Function Return ToolType$
+End Function
+
+Statement LeggiITooltype{}
+SHARED IconaProgramma$
+SHARED FormeGioco$
+SHARED SuonoUno$
+SHARED SuonoDue$
+SHARED SuonoTre$
+SHARED SuonoQuattro$
+SHARED SuonoCinque$
+SHARED SuonoSei$
+ ToolTypeLetti.l=GetIconObject(IconaProgramma$)
+ If ToolTypeLetti>0
+  NuoveFormeGioco$=FindToolValue("GAMESHAPES")
+  NuovoSuonoUno$=FindToolValue("GAMESOUND1")
+  NuovoSuonoDue$=FindToolValue("GAMESOUND2")
+  NuovoSuonoTre$=FindToolValue("GAMESOUND3")
+  NuovoSuonoQuattro$=FindToolValue("GAMESOUND4")
+  NuovoSuonoCinque$=FindToolValue("GAMESOUND5")
+  NuovoSuonoSei$=FindToolValue("GAMESOUND6")
+
+  NuoveFormeGioco$=ControllaITooltype{NuoveFormeGioco$}
+  NuovoSuonoUno$=ControllaITooltype{NuovoSuonoUno$}
+  NuovoSuonoDue$=ControllaITooltype{NuovoSuonoDue$}
+  NuovoSuonoTre$=ControllaITooltype{NuovoSuonoTre$}
+  NuovoSuonoQuattro$=ControllaITooltype{NuovoSuonoQuattro$}
+  NuovoSuonoCinque$=ControllaITooltype{NuovoSuonoCinque$}
+  NuovoSuonoSei$=ControllaITooltype{NuovoSuonoSei$}
+
+  If NuoveFormeGioco$<>""
+   FormeGioco$=NuoveFormeGioco$
+  Else
+   FormeGioco$="Original.32Cols"
+  EndIf
+  If NuovoSuonoUno$<>""
+   SuonoUno$=NuovoSuonoUno$
+  Else
+   SuonoUno$="Whipperwil.8svx"
+  EndIf
+  If NuovoSuonoDue$<>""
+   SuonoDue$=NuovoSuonoDue$
+  Else
+   SuonoDue$="Meteorite.8svx"
+  EndIf
+  If NuovoSuonoTre$<>""
+   SuonoTre$=NuovoSuonoTre$
+  Else
+   SuonoTre$="SparkDoReMiFaSol.8svx"
+  EndIf
+  If NuovoSuonoQuattro$<>""
+   SuonoQuattro$=NuovoSuonoQuattro$
+  Else
+   SuonoQuattro$="Quiet].8svx"
+  EndIf
+  If NuovoSuonoCinque$<>""
+   SuonoCinque$=NuovoSuonoCinque$
+  Else
+   SuonoCinque$="SOLOfloot.8svx"
+  EndIf
+  If NuovoSuonoSei$<>""
+   SuonoSei$=NuovoSuonoSei$
+  Else
+   SuonoSei$="Vibes1.8svx"
+  EndIf
+
+  FreeIconObject
+ Else
+  FormeGioco$="Original.32Cols"
+  SuonoUno$="Whipperwil.8svx"
+  SuonoDue$="Meteorite.8svx"
+  SuonoTre$="SparkDOReMiFaSol.8svx"
+  SuonoQuattro$="Quiet].8svx"
+  SuonoCinque$="SOLOfloot.8svx"
+  SuonoSei$="Vibes1.8svx"
+ EndIf
+End Statement
+
+Statement CreaIlBordoDellaMappa{}
+SHARED MappaBlocchi()
+ For YBlocco=0 To #AltezzaMappa-1
+  For XBlocco=0 To #LarghezzaMappa-1
+   Select YBlocco
+   Case 0
+    MappaBlocchi(XBlocco,YBlocco)=1
+   Case #AltezzaMappa-1
+    MappaBlocchi(XBlocco,YBlocco)=1
+   Default
+    Select XBlocco
+    Case 0
+     MappaBlocchi(XBlocco,YBlocco)=1
+    Case #LarghezzaMappa-1
+     MappaBlocchi(XBlocco,YBlocco)=1
+    End Select
+   End Select
+  Next XBlocco
+ Next YBlocco
+End Statement
+
+Statement CaricaIlLivello{}
+SHARED Livello
+SHARED MappaBlocchi()
+ Livello$="Level"+Str$(Livello)
+ PossoLeggereIlLivello.b=ReadFile(0,Livello$)
+ If PossoLeggereIlLivello=True
+  FileInput 0
+  XBlocco=1:YBlocco=1
+  Repeat
+   MappaBlocchi(XBlocco,YBlocco)=Cvi(Inkey$(2))
+   Separatore$=Inkey$
+   Select Separatore$
+   Case ","
+    XBlocco+1
+   Case Chr$(10)
+    XBlocco=1
+    YBlocco+1
+   End Select
+  Until YBlocco=#AltezzaMappa-1
+  CloseFile 0
+  PopInput
+ Else
+  Livello=-1
+ EndIf
+End Statement
+
+Statement Nord{}
+SHARED XMappa
+SHARED YBlocco
+SHARED YMappa
+SHARED YMappaPrimaDelSalto
+SHARED YS
+SHARED MappaBlocchi()
+ If YBlocco<1
+  YBlocco=16
+  YS=16
+  YMappaPrimaDelSalto=YMappa
+  If YMappa>0
+   YMappa-1
+   Use BitMap 0
+   For Blocchi.b=0 To 18
+    XBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa+Blocchi,YMappa)
+    If Blocco>#Vuoto Then Block Blocco,XBlocco,0 Else Boxf XBlocco,0,XBlocco+15,15,0
+   Next Blocchi
+;   BlockScroll 16,0,16*19,16*14,16,16
+   GetaShape 99,16,0,16*19,16*14
+   Cls
+   Block 99,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  YBlocco-1
+  YS-1
+ EndIf
+End Statement
+
+Statement Est{}
+SHARED XBlocco
+SHARED XMappa
+SHARED XS
+SHARED YMappa
+SHARED MappaBlocchi()
+ If XBlocco>16
+  XBlocco=1
+  XS=16
+  If XMappa+18<#LarghezzaMappa-1
+   XMappa+1
+   Use BitMap 0
+   For Blocchi.b=0 To 13
+    YBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa+18,YMappa+Blocchi)
+    If Blocco>#Vuoto Then Block Blocco,16*20,YBlocco Else Boxf 16*20,YBlocco,16*20+15,YBlocco+15,0
+   Next Blocchi
+   BlockScroll 16*2,16,16*19,16*14,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  XBlocco+1
+  XS+1
+ EndIf
+End Statement
+
+Statement Sud{}
+SHARED XMappa
+SHARED YBlocco
+SHARED YMappa
+SHARED YMappaPrimaDelSalto
+SHARED YS
+SHARED MappaBlocchi()
+ If YBlocco>16
+  YBlocco=1
+  YS=16
+  YMappaPrimaDelSalto=YMappa
+  If YMappa+13<#AltezzaMappa-1
+   YMappa+1
+   Use BitMap 0
+   For Blocchi.b=0 To 18
+    XBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa+Blocchi,YMappa+13)
+    If Blocco>#Vuoto Then Block Blocco,XBlocco,16*15 Else Boxf XBlocco,16*15,XBlocco+15,16*15+15,0
+   Next Blocchi
+   BlockScroll 16,16*2,16*19,16*14,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  YBlocco+1
+  YS+1
+ EndIf
+End Statement
+
+Statement Ovest{}
+SHARED XBlocco
+SHARED XMappa
+SHARED XS
+SHARED YMappa
+SHARED MappaBlocchi()
+ If XBlocco<1
+  XBlocco=16
+  XS=16
+  If XMappa>0
+   XMappa-1
+   Use BitMap 0
+   For Blocchi.b=0 To 13
+    YBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa,YMappa+Blocchi)
+    If Blocco>#Vuoto Then Block Blocco,0,YBlocco Else Boxf 0,YBlocco,15,YBlocco+15,0
+   Next Blocchi
+   BlockScroll 0,16,16*19,16*14,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  XBlocco-1
+  XS-1
+ EndIf
+End Statement
+
+Statement DisegnaLaMappa{}
+SHARED XMappa
+SHARED YMappa
+SHARED MappaBlocchi()
+ Use BitMap 0
+ For YBlocco=0 To 13
+  For XBlocco=0 To 18
+   Blocco.b=MappaBlocchi(XMappa+XBlocco,YMappa+YBlocco)
+   If Blocco>#Vuoto
+    Block Blocco,16+16*XBlocco,16+16*YBlocco
+   Else
+    Boxf 16+16*XBlocco,16+16*YBlocco,16+16*XBlocco+15,16+16*YBlocco+15,0
+   EndIf
+  Next XBlocco
+ Next YBlocco
+End Statement
+
+Statement ImmagineInMovimento{Direzione.b}
+SHARED ImmagineGiocatore
+ Select Direzione
+ Case #DirezioneSuJoypad
+  If ImmagineGiocatore>=96 AND ImmagineGiocatore<=98
+   ImmagineGiocatore+1:If ImmagineGiocatore=99 Then ImmagineGiocatore=96
+  Else
+   ImmagineGiocatore=96
+  EndIf
+ Case #DirezioneDestraJoypad
+  If ImmagineGiocatore>=87 AND ImmagineGiocatore<=89
+   ImmagineGiocatore+1:If ImmagineGiocatore=90 Then ImmagineGiocatore=87
+  Else
+   ImmagineGiocatore=87
+  EndIf
+ Case #DirezioneGiuJoypad
+  If ImmagineGiocatore>=93 AND ImmagineGiocatore<=95
+   ImmagineGiocatore+1:If ImmagineGiocatore=96 Then ImmagineGiocatore=93
+  Else
+   ImmagineGiocatore=93
+  EndIf
+ Case #DirezioneSinistraJoypad
+  If ImmagineGiocatore>=90 AND ImmagineGiocatore<=92
+   ImmagineGiocatore+1:If ImmagineGiocatore=93 Then ImmagineGiocatore=90
+  Else
+   ImmagineGiocatore=90
+  EndIf
+ End Select
+End Statement
+
+Statement CancellaLImmagine{XNellaMappa,YNellaMappa}
+SHARED AltezzaInternaFinestra
+SHARED LarghezzaInternaFinestra
+SHARED XMappa
+SHARED YMappa
+SHARED MappaBlocchi()
+ For Y=-1 To 1
+  For X=-1 To 1
+   XBloccoDaCancellare=XNellaMappa+X
+   YBloccoDaCancellare=YNellaMappa+Y
+   If XBloccoDaCancellare>=0 AND XBloccoDaCancellare<=#LarghezzaMappa-1
+    If YBloccoDaCancellare>=0 AND YBloccoDaCancellare<=#AltezzaMappa-1
+     Blocco.b=MappaBlocchi(XBloccoDaCancellare,YBloccoDaCancellare)
+     XPersonaggio=16*(XBloccoDaCancellare-XMappa)
+     YPersonaggio=16*(YBloccoDaCancellare-YMappa)
+     If XPersonaggio>=0 AND XPersonaggio<=LarghezzaInternaFinestra AND YPersonaggio>=0 AND YPersonaggio<=AltezzaInternaFinestra
+      XPersonaggio+16
+      YPersonaggio+16
+      If Blocco=0
+       Boxf XPersonaggio,YPersonaggio,XPersonaggio+15,YPersonaggio+15,0
+      Else
+       Block Blocco,XPersonaggio,YPersonaggio
+      EndIf
+     EndIf
+    EndIf
+   EndIf
+  Next X
+ Next Y
+End Statement
+
+Statement MostraIlGiocatore{}
+SHARED AltezzaInternaFinestra
+SHARED GiocatoreInvulnerabile
+SHARED ImmagineGiocatore
+SHARED ImmagineGiocatoreCancellata
+SHARED LarghezzaInternaFinestra
+SHARED MossaMappaConITasti
+SHARED MossaMappaConLeBarre
+SHARED StaiCadendo
+SHARED StaiCalciando
+SHARED TempoSalto
+SHARED TiStaiMuovendo
+SHARED TiStaiMuovendoColJoypad
+SHARED XGiocatore
+SHARED XMappa
+SHARED YGiocatore
+SHARED YMappa
+ X=XGiocatore-16*XMappa
+ Y=YGiocatore-16*YMappa
+ If X>=0 AND X<=LarghezzaInternaFinestra AND Y>=0 AND Y<=AltezzaInternaFinestra
+  If TiStaiMuovendo=False AND TiStaiMuovendoColJoypad=False AND TempoSalto=0 AND StaiCadendo=0 AND StaiCalciando=0
+   XDistanza=WMouseX-X
+   If XDistanza>0 Then ImmagineGiocatore=87
+   If XDistanza<0 Then ImmagineGiocatore=90
+   If XDistanza>-8 AND XDistanza<8 Then ImmagineGiocatore=93
+  EndIf
+  If MossaMappaConITasti=False
+   If MossaMappaConLeBarre=True
+    Blit ImmagineGiocatore,16+X,16+Y
+   Else
+    If GiocatoreInvulnerabile>0
+     If GiocatoreInvulnerabile=1 Then Sound #SuonoCinque,8,64
+     If GiocatoreInvulnerabile MOD 2=1 Then Blit ImmagineGiocatore,16+X,16+Y
+     GiocatoreInvulnerabile+1
+     If GiocatoreInvulnerabile=100 Then GiocatoreInvulnerabile=0
+    Else
+     Blit ImmagineGiocatore,16+X,16+Y
+    EndIf
+   EndIf
+  EndIf
+  If ImmagineGiocatoreCancellata=True Then ImmagineGiocatoreCancellata=False
+ Else
+  If ImmagineGiocatoreCancellata=False
+   CancellaLImmagine{XGiocatoreNellaMappa,YGiocatoreNellaMappa}
+   ImmagineGiocatoreCancellata=True
+  EndIf
+ EndIf
+End Statement
+
+Statement Gravita{}
+SHARED AggiustaLaPosizioneDopoIlSalto
+SHARED AltezzaInternaFinestra
+SHARED DirezioneSalto
+SHARED HaiSaltato
+SHARED Informazioni
+SHARED StaiCadendo
+SHARED SuonoCaduta
+SHARED TempoSalto
+SHARED TiStaiMuovendo
+SHARED TiStaiMuovendoColJoypad
+SHARED XGiocatore
+SHARED XGiocatoreNellaMappa
+SHARED YBlocco
+SHARED YGiocatore
+SHARED YGiocatoreNellaMappa
+SHARED YMappa
+SHARED MappaBlocchi()
+ XGiocatoreNellaMappa=XGiocatore/16
+ YGiocatoreNellaMappa=YGiocatore/16
+ If TempoSalto=0
+  If YGiocatoreNellaMappa<31
+   Blocco.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa)
+   BloccoSotto.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa+1)
+   If StaiCadendo=0 AND Blocco<>#Scala AND Blocco<>#ScalaSuPiattaforma
+    If BloccoSotto=#Vuoto OR BloccoSotto=#LogoAmiga
+     StaiCadendo=3
+     TiStaiMuovendo=False
+    Else
+     If SuonoCaduta=True AND StaiCadendo=0
+      Quiet 1
+      SuonoCaduta=False
+      AggiustaLaPosizioneDopoIlSalto=True
+     EndIf
+    EndIf
+   EndIf
+  EndIf
+ EndIf
+ Select StaiCadendo
+ Case 3
+  If HaiSaltato=True
+   XGiocatore+DirezioneSalto
+   YGiocatore+1
+   StaiCadendo=2
+  Else
+   If TiStaiMuovendoColJoypad=False
+    If XGiocatore MOD 16<8
+     XGiocatore+1
+     ImmagineInMovimento{2}
+    EndIf
+    If XGiocatore MOD 16>8
+     XGiocatore-1
+     ImmagineInMovimento{6}
+    EndIf
+    If YGiocatore MOD 16<8
+     YGiocatore+1
+     ImmagineInMovimento{4}
+    EndIf
+    If XGiocatore MOD 16=8 AND YGiocatore MOD 16=8 Then StaiCadendo=2
+   Else
+    StaiCadendo=2
+    TiStaiMuovendoColJoypad=False
+   EndIf
+  EndIf
+ Case 2
+  If HaiSaltato=True
+   XGiocatore+DirezioneSalto
+   XGiocatoreNellaMappa=XGiocatore/16
+  Else
+   If SuonoCaduta=False
+    Sound #SuonoDue,1,64
+    SuonoCaduta=True
+   EndIf
+  EndIf
+  YGiocatore+1
+  YGiocatoreNellaMappa=YGiocatore/16
+  Blocco=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa)
+  BloccoSotto=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa+1)
+  If BloccoSotto>#Vuoto OR Blocco=#Scala OR Blocco=#ScalaSuPiattaforma Then StaiCadendo=1
+  If YGiocatore-16>16*14
+   YBlocco+16
+   Sud{}
+  EndIf
+ Case 1
+  If YGiocatore MOD 16<8 AND TiStaiMuovendo=False
+   If HaiSaltato=True Then XGiocatore+DirezioneSalto
+   YGiocatore+1
+  Else
+   Quiet 1
+   SuonoCaduta=False
+   StaiCadendo=0
+   HaiSaltato=False
+   AggiustaLaPosizioneDopoIlSalto=True
+  EndIf
+ End Select
+ If Informazioni=True Then WLocate 16,48:Print "Falling>",StaiCadendo
+End Statement
+
+Statement BloccoDelTopo{}
+SHARED XBloccoDelTopo
+SHARED YBloccoDelTopo
+ If Zone(WMouseX,WMouseY)=0
+  XDelTopo=WMouseX
+  YDelTopo=WMouseY
+  XBloccoDelTopo=XDelTopo/16
+  YBloccoDelTopo=YDelTopo/16
+  Wline 16*XBloccoDelTopo+1,16*YBloccoDelTopo+1,16*XBloccoDelTopo+14,16*YBloccoDelTopo+1,1
+  Wline 16*XBloccoDelTopo+14,16*YBloccoDelTopo+1,16*XBloccoDelTopo+14,16*YBloccoDelTopo+14,1
+  Wline 16*XBloccoDelTopo+14,16*YBloccoDelTopo+14,16*XBloccoDelTopo+1,16*YBloccoDelTopo+14,1
+  Wline 16*XBloccoDelTopo+1,16*YBloccoDelTopo+14,16*XBloccoDelTopo+1,16*YBloccoDelTopo+1,1
+ EndIf
+End Statement
+
+Statement Salta{}
+SHARED AggiustaLaPosizioneDopoIlSalto
+SHARED AltezzaMassimaSalto
+SHARED DirezioneSalto
+SHARED HaiSaltato
+SHARED Informazioni
+SHARED MossaMappaConITasti
+SHARED MossaMappaConLeBarre
+SHARED SuonoCaduta
+SHARED TempoSalto
+SHARED TiStaiMuovendoColJoypad
+SHARED XBloccoDelTopo
+SHARED XDistanzaInBlocchi
+SHARED XGiocatore
+SHARED XGiocatoreNellaMappa
+SHARED XMappa
+SHARED YGiocatore
+SHARED YGiocatoreNellaMappa
+SHARED YGiocatorePrimaDelSalto
+SHARED YMappa
+SHARED YMappaPrimaDelSalto
+SHARED MappaBlocchi()
+ XGiocatoreNellaMappa=XGiocatore/16
+ YGiocatoreNellaMappa=YGiocatore/16
+ If TempoSalto=.1
+  Sound #SuonoUno,1,64
+  If TiStaiMuovendoColJoypad=True
+   DirezioneSalto=Joyx(1)
+  Else
+   XDistanzaInBlocchi=XBloccoDelTopo-(XGiocatoreNellaMappa-XMappa)
+   DirezioneSalto=Sgn(XDistanzaInBlocchi)
+  EndIf
+  YGiocatorePrimaDelSalto=YGiocatore
+ EndIf
+ Salto=Sin(TempoSalto)*25
+ If Salto<0 Then Salto=0
+ If Salto=0
+  YGiocatore=YGiocatorePrimaDelSalto
+  TempoSalto=0
+  HaiSaltato=True
+ Else
+  Select DirezioneSalto
+  Case 1
+   BloccoDestra.b=MappaBlocchi(XGiocatoreNellaMappa+1,YGiocatoreNellaMappa)
+   If BloccoDestra<>#Bordo
+    XGiocatore+1
+   Else
+    If XGiocatore MOD 16<8 Then XGiocatore+1
+   EndIf
+  Case -1
+   BloccoSinistra.b=MappaBlocchi(XGiocatoreNellaMappa-1,YGiocatoreNellaMappa)
+   If BloccoSinistra<>#Bordo
+    XGiocatore-1
+   Else
+    If XGiocatore MOD 16>8 Then XGiocatore-1
+   EndIf
+  End Select
+  TempoSalto+.1
+  If MossaMappaConITasti=True OR MossaMappaConLeBarre=True
+   YDistanzaInBlocchi=YMappaPrimaDelSalto-YMappa
+   YGiocatorePrimaDelSalto+16*YDistanzaInBlocchi
+  EndIf
+  YGiocatore=YGiocatorePrimaDelSalto-Salto
+  XGiocatoreNellaMappa=XGiocatore/16
+  YGiocatoreNellaMappa=YGiocatore/16
+  Blocco.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa)
+  BloccoSotto.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa+1)
+  If TempoSalto>AltezzaMassimaSalto
+   If SuonoCaduta=False
+    Sound #SuonoDue,1,64
+    SuonoCaduta=True
+   EndIf
+   If Blocco=#ScalaSuPiattaforma OR Blocco=#Scala
+    Quiet 1
+    SuonoCaduta=False
+    TempoSalto=0
+    AggiustaLaPosizioneDopoIlSalto=True
+   Else
+    If BloccoSotto>#Vuoto AND BloccoSotto<>#LogoAmiga
+     If YGiocatore MOD 16<8
+      YGiocatore+1
+     Else
+      TempoSalto=0
+      HaiSaltato=True
+     EndIf
+    EndIf
+   EndIf
+  EndIf
+ EndIf
+ If Informazioni=True Then WLocate 16,48:Print "JumpDirection>",DirezioneSalto," JumpDuration>",TempoSalto
+End Statement
+
+Statement AggiustaLaPosizioneDopoIlSalto{}
+SHARED AggiustaLaPosizioneDopoIlSalto
+SHARED XGiocatore
+SHARED YGiocatore
+ If XGiocatore MOD 16<8 Then XGiocatore+1
+ If XGiocatore MOD 16>8 Then XGiocatore-1
+ If YGiocatore MOD 16<8 Then YGiocatore+1
+ If YGiocatore MOD 16>8 Then YGiocatore-1
+ If XGiocatore MOD 16=8 AND YGiocatore MOD 16=8 Then AggiustaLaPosizioneDopoIlSalto=False
+End Statement
+
+Statement Calcia{}
+SHARED ImmagineGiocatore
+SHARED StaiCalciando
+Select StaiCalciando
+Case 0
+ Sound #SuonoTre,2,64
+ If ImmagineGiocatore>=87 AND ImmagineGiocatore <=89 Then ImmagineGiocatore=83
+ If ImmagineGiocatore>=90 AND ImmagineGiocatore <=92 Then ImmagineGiocatore=84
+ If ImmagineGiocatore>=93 AND ImmagineGiocatore <=95 Then ImmagineGiocatore=85
+ If ImmagineGiocatore>=96 AND ImmagineGiocatore <=98 Then ImmagineGiocatore=86
+ StaiCalciando=1
+Case 25
+ StaiCalciando=0
+Default
+ StaiCalciando+1
+End Select
+End Statement
+
+Statement Muoviti{}
+SHARED Salto
+SHARED SeiBloccato
+SHARED TempoSalto
+SHARED TiStaiMuovendo
+SHARED XBloccoDelTopo
+SHARED XDistanzaInBlocchi
+SHARED XGiocatore
+SHARED XGiocatoreNellaMappa
+SHARED XMappa
+SHARED YBloccoDelTopo
+SHARED YDistanzaInBlocchi
+SHARED YGiocatore
+SHARED YGiocatoreNellaMappa
+SHARED YMappa
+SHARED MappaBlocchi()
+ XGiocatoreNellaMappa=XGiocatore/16
+ YGiocatoreNellaMappa=YGiocatore/16
+ XDistanzaInBlocchi=XBloccoDelTopo-(XGiocatoreNellaMappa-XMappa)
+ YDistanzaInBlocchi=YBloccoDelTopo-(YGiocatoreNellaMappa-YMappa)
+ If XDistanzaInBlocchi<>0 OR YDistanzaInBlocchi<>0
+  If XGiocatore MOD 16=8 AND YGiocatore MOD 16=8
+   Blocco.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa)
+   BloccoSopra.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa-1)
+   BloccoSotto.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa+1)
+   BloccoSinistra.b=MappaBlocchi(XGiocatoreNellaMappa-1,YGiocatoreNellaMappa)
+   BloccoDestra.b=MappaBlocchi(XGiocatoreNellaMappa+1,YGiocatoreNellaMappa)
+   If XDistanzaInBlocchi<>0
+    If XDistanzaInBlocchi>0
+     If BloccoDestra=#Vuoto OR BloccoDestra=#Scala OR BloccoDestra=#LogoAmiga
+      XGiocatore+1
+      ImmagineInMovimento{2}
+     Else
+      XDistanzaInBlocchi=0
+      SeiBloccato BitSet 0;SeiBloccato=OR %01
+     EndIf
+    EndIf
+    If XDistanzaInBlocchi<0
+     If BloccoSinistra=#Vuoto OR BloccoSinistra=#Scala OR BloccoSinistra=#LogoAmiga
+      XGiocatore-1
+      ImmagineInMovimento{6}
+     Else
+      XDistanzaInBlocchi=0
+      SeiBloccato BitSet 0;SeiBloccato=OR %01
+     EndIf
+    EndIf
+   Else
+    If YDistanzaInBlocchi>0
+     If BloccoSotto=#ScalaSuPiattaforma OR BloccoSotto=#Scala
+      YGiocatore+1
+      ImmagineInMovimento{4}
+     Else
+      YDistanzaInBlocchi=0
+      SeiBloccato BitSet 1;SeiBloccato=OR %10
+     EndIf
+    EndIf
+    If YDistanzaInBlocchi<0
+     If Blocco=#ScalaSuPiattaforma OR Blocco=#Scala
+      YGiocatore-1
+      ImmagineInMovimento{0}
+     Else
+      YDistanzaInBlocchi=0
+      SeiBloccato BitSet 1;SeiBloccato=OR %10
+     EndIf
+    EndIf
+   EndIf
+   If SeiBloccato=%11 Then TiStaiMuovendo=False
+  Else
+   If XDistanzaInBlocchi>0
+    If XGiocatore MOD 16<>8
+     XGiocatore+1
+     ImmagineInMovimento{2}
+    EndIf
+   EndIf
+   If XDistanzaInBlocchi<0
+    If XGiocatore MOD 16<>8
+     XGiocatore-1
+     ImmagineInMovimento{6}
+    EndIf
+   EndIf
+   If XDistanzaInBlocchi=0
+    If XGiocatore MOD 16<8 Then XGiocatore+1
+    If XGiocatore MOD 16>8 Then XGiocatore-1
+   EndIf
+   If YDistanzaInBlocchi>0
+    If YGiocatore MOD 16<>8
+     YGiocatore+1
+     ImmagineInMovimento{4}
+    EndIf
+   EndIf
+   If YDistanzaInBlocchi<0
+    If YGiocatore MOD 16<>8
+     YGiocatore-1
+     ImmagineInMovimento{0}
+    EndIf
+   EndIf
+   If YDistanzaInBlocchi=0
+    If YGiocatore MOD 16<8 Then YGiocatore+1
+    If YGiocatore MOD 16>8 Then YGiocatore-1
+   EndIf
+  EndIf
+ Else
+  If XGiocatore MOD 16=8 AND YGiocatore MOD 16=8 Then TiStaiMuovendo=False
+  If XGiocatore MOD 16<8
+   XGiocatore+1
+   ImmagineInMovimento{2}
+  EndIf
+  If XGiocatore MOD 16>8
+   XGiocatore-1
+   ImmagineInMovimento{6}
+  EndIf
+  If YGiocatore MOD 16<8
+   YGiocatore+1
+   ImmagineInMovimento{4}
+  EndIf
+  If YGiocatore MOD 16>8
+   YGiocatore-1
+   ImmagineInMovimento{0}
+  EndIf
+ EndIf
+End Statement
+
+Statement MuovitiColJoypad{}
+SHARED SeiBloccato
+SHARED StaiCadendo
+SHARED TiStaiMuovendoColJoypad
+SHARED XGiocatore
+SHARED XGiocatoreNellaMappa
+SHARED YGiocatore
+SHARED YGiocatoreNellaMappa
+SHARED MappaBlocchi()
+ Blocco.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa)
+ BloccoSopra.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa-1)
+ BloccoSotto.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa+1)
+ BloccoSinistra.b=MappaBlocchi(XGiocatoreNellaMappa-1,YGiocatoreNellaMappa)
+ BloccoDestra.b=MappaBlocchi(XGiocatoreNellaMappa+1,YGiocatoreNellaMappa)
+ DirezioneJoypad=Joyr(1)
+ Select DirezioneJoypad
+ Case #DirezioneSuJoypad
+  If Blocco=#ScalaSuPiattaforma OR Blocco=#Scala
+   YGiocatore-1
+  Else
+   If YGiocatore MOD 16>8
+    YGiocatore-1
+   Else
+    SeiBloccato BitSet 1
+   EndIf
+  EndIf
+  ImmagineInMovimento{DirezioneJoypad}
+ Case #DirezioneDestraJoypad
+  If BloccoDestra=#Vuoto OR BloccoDestra=#Scala OR BloccoDestra=#LogoAmiga
+   XGiocatore+1
+  Else
+   If XGiocatore MOD 16<8
+    XGiocatore+1
+   Else
+    SeiBloccato BitSet 0
+   EndIf
+  EndIf
+  ImmagineInMovimento{DirezioneJoypad}
+ Case #DirezioneGiuJoypad
+  If BloccoSotto=#ScalaSuPiattaforma OR BloccoSotto=#Scala
+   YGiocatore+1
+  Else
+   If YGiocatore MOD 16<8
+    YGiocatore+1
+   Else
+    SeiBloccato BitSet 1
+   EndIf
+  EndIf
+  ImmagineInMovimento{DirezioneJoypad}
+ Case #DirezioneSinistraJoypad
+  If BloccoSinistra=#Vuoto OR BloccoSinistra=#Scala OR BloccoSinistra=#LogoAmiga
+   XGiocatore-1
+  Else
+   If XGiocatore MOD 16>8
+    XGiocatore-1
+   Else
+    SeiBloccato BitSet 0
+   EndIf
+  EndIf
+  ImmagineInMovimento{DirezioneJoypad}
+ End Select
+ If SeiBloccato=%11 Then TiStaiMuovendoColJoypad=False
+ XGiocatoreNellaMappa=XGiocatore/16
+ YGiocatoreNellaMappa=YGiocatore/16
+End Statement
+
+Statement PrendiUnLogoAmiga{}
+SHARED AltezzaFonte
+SHARED LivelloTerminato
+SHARED LogoAmiga
+SHARED Punteggio
+SHARED StaiCalciando
+SHARED XGiocatoreNellaMappa
+SHARED YGiocatoreNellaMappa
+SHARED MappaBlocchi()
+ Blocco.b=MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa)
+ If Blocco=#LogoAmiga
+  Punteggio+5
+  MappaBlocchi(XGiocatoreNellaMappa,YGiocatoreNellaMappa)=#Vuoto
+  LogoAmiga-1
+ EndIf
+ If LogoAmiga=0
+  Aspetta{100}
+  Messaggio$="* Level completed! *"
+  LunghezzaTesto=TextLength_(RastPort(#Finestra),Messaggio$,Len(Messaggio$))
+  XTesto=(InnerWidth-LunghezzaTesto)/2
+  YTesto=(InnerHeight-AltezzaFonte*3)/2
+  WLocate XTesto,YTesto:Print "********************":YTesto+AltezzaFonte
+  WLocate XTesto,YTesto:Print Messaggio$:YTesto+AltezzaFonte
+  WLocate XTesto,YTesto:Print "********************"
+  Aspetta{250}
+  LivelloTerminato=True
+ EndIf
+End Statement
+
+Statement PosizionaGliEsseriOstiliEdILogoAmiga{}
+SHARED EsseriOstili
+SHARED LogoAmiga
+SHARED EssereOstile()
+SHARED MappaBlocchi()
+ LogoAmiga=0
+ EsseriOstili=0
+ For Y=1 To #AltezzaMappa-2
+  For X=1 To #LarghezzaMappa-2
+   Select MappaBlocchi(X,Y)
+   Case #LogoAmiga
+    LogoAmiga+1
+   Case #EssereOstile
+    EssereOstile(EsseriOstili)\X=16*X+8
+    EssereOstile(EsseriOstili)\Y=16*Y+8
+    EssereOstile(EsseriOstili)\XNellaMappa=X
+    EssereOstile(EsseriOstili)\YNellaMappa=Y
+    EssereOstile(EsseriOstili)\Immagine=#EssereOstile
+    EssereOstile(EsseriOstili)\Movimento=1
+    EssereOstile(EsseriOstili)\Vite=1
+    MappaBlocchi(X,Y)=#Vuoto
+    EsseriOstili+1
+   End Select
+  Next X
+ Next Y
+End Statement
+
+Statement MostraEssereOstile{EssereOstile}
+SHARED AltezzaInternaFinestra
+SHARED LarghezzaInternaFinestra
+SHARED MossaMappaConITasti
+SHARED MossaMappaConLeBarre
+SHARED XMappa
+SHARED YMappa
+SHARED EssereOstile()
+ X=EssereOstile(EssereOstile)\X-16*XMappa
+ Y=EssereOstile(EssereOstile)\Y-16*YMappa
+ XNellaMappa=EssereOstile(EssereOstile)\XNellaMappa
+ YNellaMappa=EssereOstile(EssereOstile)\YNellaMappa
+ Immagine.b=EssereOstile(EssereOstile)\Immagine
+ ImmagineCancellata.b=EssereOstile(EssereOstile)\ImmagineCancellata
+ If X>=0 AND X<LarghezzaInternaFinestra AND Y>=0 AND Y<AltezzaInternaFinestra
+  If MossaMappaConITasti=False AND MossaMappaConLeBarre=True
+   Blit Immagine,16+X,16+Y
+  EndIf
+  If MossaMappaConITasti=False AND MossaMappaConLeBarre=False
+   Blit Immagine,16+X,16+Y
+  EndIf
+  If ImmagineCancellata=True Then ImmagineCancellata=False
+ Else
+  If ImmagineCancellata=False
+   CancellaLImmagine{XNellaMappa,YNellaMappa}
+   ImmagineCancellata=True
+  EndIf
+ EndIf
+ EssereOstile(EssereOstile)\ImmagineCancellata=ImmagineCancellata
+End Statement
+
+Statement EsseriOstili{}
+SHARED AltezzaInternaFinestra
+SHARED EsseriOstili
+SHARED GiocatoreInvulnerabile
+SHARED Punteggio
+SHARED StaiCalciando
+SHARED ViteGiocatore
+SHARED XGiocatore
+SHARED YGiocatore
+SHARED YMappa
+SHARED EssereOstile()
+SHARED MappaBlocchi()
+ If EsseriOstili>0
+  For EssereOstile.b=0 To EsseriOstili-1
+   Vite=EssereOstile(EssereOstile)\Vite
+   If Vite>0
+    X=EssereOstile(EssereOstile)\X
+    Y=EssereOstile(EssereOstile)\Y
+    Immagine.b=EssereOstile(EssereOstile)\Immagine
+    Movimento.b=EssereOstile(EssereOstile)\Movimento
+    ImmagineCancellata.b=EssereOstile(EssereOstile)\ImmagineCancellata
+
+    XNellaMappa=EssereOstile(EssereOstile)\XNellaMappa
+    YNellaMappa=EssereOstile(EssereOstile)\YNellaMappa
+    If Movimento<>4
+     BloccoDestra.b=MappaBlocchi(XNellaMappa+1,YNellaMappa)
+     BloccoDestraSotto.b=MappaBlocchi(XNellaMappa+1,YNellaMappa+1)
+     BloccoSinistra.b=MappaBlocchi(XNellaMappa-1,YNellaMappa)
+     BloccoSinistraSotto.b=MappaBlocchi(XNellaMappa-1,YNellaMappa+1)
+    EndIf
+    Select Movimento
+    Case -3
+     If Immagine<>#EssereOstile Then Immagine=#EssereOstile Else Immagine=76:Movimento=2
+    Case -2
+     If Immagine<>#EssereOstile Then Immagine=#EssereOstile Else Immagine=75:Movimento=1
+    Case 1
+     If BloccoDestraSotto<>#Vuoto AND BloccoDestra<>#Bordo
+      X+1
+      XNellaMappa=X/16
+      If Immagine<>75 Then Immagine=75
+     Else
+      Movimento=-3
+     EndIf
+    Case 2
+     If BloccoSinistraSotto<>#Vuoto AND BloccoSinistra<>#Bordo
+      X-1
+      XNellaMappa=X/16
+      If Immagine<>76 Then Immagine=76
+     Else
+      Movimento=-2
+     EndIf
+    Case 4
+     Y+1
+     YNellaMappa=Y/16
+     If Immagine<79 Then Immagine+4
+     YNellaFinestra=Y-16*YMappa
+     If YNellaFinestra-8>AltezzaInternaFinestra
+      Movimento=0
+      Vite-1
+      EssereOstileCalciato.b=False
+     EndIf
+    End Select
+    XDistanza=Abs(X-XGiocatore)
+    YDistanza=Abs(Y-YGiocatore)
+    If XDistanza<14 AND YDistanza<14
+     EssereOstileCalciato=EssereOstile(EssereOstile)\Calciato
+     If StaiCalciando>0
+      If EssereOstileCalciato=False
+       Sound #SuonoSei,4,64
+       Movimento=4
+       Punteggio+2
+       EssereOstileCalciato=True
+      EndIf
+     Else
+      If GiocatoreInvulnerabile=0
+       Sound #SuonoQuattro,4,64
+       ViteGiocatore-1
+       GiocatoreInvulnerabile=1
+       Delay_ 250
+       Statement Return
+      EndIf
+     EndIf
+    EndIf
+   Else
+    If EssereOstile(EssereOstile)\ImmagineCancellata=False
+     CancellaLImmagine{XNellaMappa,YNellaMappa}
+     EssereOstile(EssereOstile)\ImmagineCancellata=True
+    EndIf
+   EndIf
+   EssereOstile(EssereOstile)\X=X
+   EssereOstile(EssereOstile)\Y=Y
+   EssereOstile(EssereOstile)\XNellaMappa=XNellaMappa
+   EssereOstile(EssereOstile)\YNellaMappa=YNellaMappa
+   EssereOstile(EssereOstile)\Immagine=Immagine
+   EssereOstile(EssereOstile)\ImmagineCancellata=ImmagineCancellata
+   EssereOstile(EssereOstile)\Movimento=Movimento
+   EssereOstile(EssereOstile)\Vite=Vite
+   EssereOstile(EssereOstile)\Calciato=EssereOstileCalciato
+   MostraEssereOstile{EssereOstile}
+  Next EssereOstile
+ EndIf
+End Statement
+
+Statement CancellaLeImmagini{}
+SHARED EsseriOstili
+SHARED ImmagineGiocatoreCancellata
+SHARED XGiocatoreNellaMappa
+SHARED YGiocatoreNellaMappa
+SHARED EssereOstile()
+ If ImmagineGiocatoreCancellata=False
+  CancellaLImmagine{XGiocatoreNellaMappa,YGiocatoreNellaMappa}
+ EndIf
+ If EsseriOstili>0
+  For EssereOstile=0 To EsseriOstili-1
+   If EssereOstile(EssereOstile)\ImmagineCancellata=False
+    CancellaLImmagine{EssereOstile(EssereOstile)\XNellaMappa,EssereOstile(EssereOstile)\YNellaMappa}
+   EndIf
+  Next EssereOstile
+ EndIf
+End Statement
+
+Statement CaricaLaFonteSteMar002{}
+SHARED AltezzaFonte
+ If Exists("FONTS:SteMar002.font")>0 AND Exists("FONTS:SteMar002/9f")>0
+  AltezzaFonte=#AltezzaFonteSteMar002:LoadFont #Fonte,"SteMar002.font",AltezzaFonte
+ Else
+  AltezzaFonte=8:LoadFont #Fonte,"topaz.font",AltezzaFonte
+ EndIf
+End Statement
+
+Statement CaricaLeForme{}
+SHARED FormeGioco$
+ If Exists(FormeGioco$)>0
+  Screen #Schermo,#ProfonditaSchermo
+  LoadScreen #Schermo,FormeGioco$,#TavolozzaColori
+  Use Palette #TavolozzaColori
+  ScreensBitMap #Schermo,#BitmapSchermo
+ Else
+  Messaggio$="Non trovo l'immagine delle forme!|"
+  Messaggio$+"I cannot find the shapes image!"
+  Request "JumpingAround",Messaggio$,"Noo!"
+  End
+ EndIf
+End Statement
+
+Statement RicavaLeForme{}
+ GetaShape 1, 0,68,16,16:Boxf  0,68,15, 83,0:Delay_ 5
+ GetaShape 2,17,68,16,16:Boxf 17,68,33, 83,0:Delay_ 5
+ GetaShape 3, 0,85,16,16:Boxf  0,85,15,100,0:Delay_ 5
+ GetaShape 4,17,85,16,16:Boxf 17,85,33,100,0:Delay_ 5
+ GetaShape 5,34,68,16,16:Boxf 34,68,49, 83,0:Delay_ 5
+
+ GetaShape 75,68, 0,16,16:Handle 75,8,8:Boxf 68, 0, 83,15,0:Delay_ 5
+ GetaShape 76,68,17,16,16:Handle 76,8,8:Boxf 68,17, 83,32,0:Delay_ 5
+ GetaShape 77,68,34,16,16:Handle 77,8,8:Boxf 68,34, 83,49,0:Delay_ 5
+ GetaShape 78,68,51,16,16:Handle 78,8,8:Boxf 68,51, 83,66,0:Delay_ 5
+
+ GetaShape 79,85, 0,16,16:Handle 79,8,8:Boxf 85, 0,100,15,0:Delay_ 5
+ GetaShape 80,85,17,16,16:Handle 80,8,8:Boxf 85,17,100,32,0:Delay_ 5
+ GetaShape 81,85,34,16,16:Handle 81,8,8:Boxf 85,34,100,49,0:Delay_ 5
+ GetaShape 82,85,51,16,16:Handle 82,8,8:Boxf 85,51,100,66,0:Delay_ 5
+
+ GetaShape 83,51, 0,16,16:Handle 83,8,8:Boxf 51, 0, 66,15,0:Delay_ 5
+ GetaShape 84,51,17,16,16:Handle 84,8,8:Boxf 51,17, 66,32,0:Delay_ 5
+ GetaShape 85,51,34,16,16:Handle 85,8,8:Boxf 51,34, 66,49,0:Delay_ 5
+ GetaShape 86,51,51,16,16:Handle 86,8,8:Boxf 51,51, 66,66,0:Delay_ 5
+
+ GetaShape 87, 0, 0,16,16:Handle 87,8,8:Boxf  0, 0, 15,15,0:Delay_ 5
+ GetaShape 88,17, 0,16,16:Handle 88,8,8:Boxf 17, 0, 32,15,0:Delay_ 5
+ GetaShape 89,34, 0,16,16:Handle 89,8,8:Boxf 34, 0, 49,15,0:Delay_ 5
+ GetaShape 90, 0,17,16,16:Handle 90,8,8:Boxf  0,17, 15,32,0:Delay_ 5
+
+ GetaShape 91,17,17,16,16:Handle 91,8,8:Boxf 17,17, 32,32,0:Delay_ 5
+ GetaShape 92,34,17,16,16:Handle 92,8,8:Boxf 34,17, 49,32,0:Delay_ 5
+ GetaShape 93, 0,34,16,16:Handle 93,8,8:Boxf  0,34, 15,49,0:Delay_ 5
+ GetaShape 94,17,34,16,16:Handle 94,8,8:Boxf 17,34, 32,49,0:Delay_ 5
+ GetaShape 95,34,34,16,16:Handle 95,8,8:Boxf 34,34, 49,49,0:Delay_ 5
+ GetaShape 96, 0,51,16,16:Handle 96,8,8:Boxf  0,51, 15,66,0:Delay_ 5
+ GetaShape 97,17,51,16,16:Handle 97,8,8:Boxf 17,51, 32,66,0:Delay_ 5
+ GetaShape 98,34,51,16,16:Handle 98,8,8:Boxf 34,51, 49,66,0:Delay_ 5
+ CloseScreen #Schermo
+End Statement
+
+Statement ImpostaLoSchermo{}
+SHARED LunXSchermo
+SHARED LunYSchermo
+SHARED TitoloSchermo$
+ Use IntuiFont #Fonte
+ ScreenPens #_DarkRed,#_White,#_Grey2,#_Grey1,#_Blue,#_Grey3,#_Red
+ Screen #Schermo,#ProfonditaSchermo,TitoloSchermo$
+ Use Palette #TavolozzaColori
+ IndirizzoSchermo.l=Peek.l(Addr Screen(#Schermo))
+ LunXSchermo=Peek.w(IndirizzoSchermo+12)
+ LunYSchermo=Peek.w(IndirizzoSchermo+14)
+End Statement
+
+Statement ImpostaLaFinestra{PerIlGioco.b}
+SHARED AltezzaFonte
+SHARED AltezzaInternaFinestra
+SHARED LarghezzaInternaFinestra
+SHARED LunXSchermo
+SHARED LunYSchermo
+SHARED TitoloFinestra$
+ BordoSchermo.b=AltezzaFonte+3
+ If PerIlGioco=False
+  TipoFinestra.l=#BottoneChiusuraFinestra+#DammiZeroZero+#FinestraAttiva
+ Window #Finestra,0,BordoSchermo,LunXSchermo,LunYSchermo-BordoSchermo,TipoFinestra,TitoloFinestra$,#_Grey3,#_Grey5
+  LarghezzaInternaFinestra=InnerWidth-8
+  AltezzaInternaFinestra=InnerHeight-8
+ Else
+  CloseWindow #Finestra
+
+;------------------
+;barra orizzontale
+;horizontal bar
+;---------------
+  PropGadget #ListaBottoni,0,AltezzaInternaFinestra,#MovimentoOrizzontale,#BarraOrizzontale,LarghezzaInternaFinestra,8
+
+;----------------
+;barra verticale
+;vertical bar
+;-------------
+  PropGadget #ListaBottoni,LarghezzaInternaFinestra,0,#MovimentoVerticale,#BarraVerticale,8,AltezzaInternaFinestra
+
+  TipoFinestra=#BottoneChiusuraFinestra+#RicordaDisegnoDestra+#RicordaDisegnoSotto+#DammiZeroZero+#FinestraAttiva
+ Window #Finestra,0,BordoSchermo,LunXSchermo,LunYSchermo-BordoSchermo,TipoFinestra,TitoloFinestra$,#_Grey3,#_Grey5,#ListaBottoni
+ EndIf
+ Menus Off
+ WindowFont #Fonte
+End Statement
+
+Statement ImpostaBitmap{}
+ BitMap #BitmapSchermo,#LarghezzaBitmap,#AltezzaBitmap,#ProfonditaSchermo
+End Statement
+
+Statement CaricaISuoni{}
+SHARED SuonoUno$
+SHARED SuonoDue$
+SHARED SuonoTre$
+SHARED SuonoQuattro$
+SHARED SuonoCinque$
+SHARED SuonoSei$
+ Messaggio$="Non trovo il suono-I cannot find the sound"
+ SuonoMancante.b=False
+
+ If Exists(SuonoUno$)>0
+  LoadSound #SuonoUno,SuonoUno$
+ Else
+  NPrint Messaggio$
+  NPrint SuonoUno$
+  Delay_ #RitardoMessaggi
+  SuonoMancante=True
+ EndIf
+
+ If Exists(SuonoDue$)>0
+  LoadSound #SuonoDue,SuonoDue$
+ Else
+  NPrint Messaggio$
+  NPrint SuonoDue$
+  Delay_ #RitardoMessaggi
+  SuonoMancante=True
+ EndIf
+
+ If Exists(SuonoTre$)>0
+  LoadSound #SuonoTre,SuonoTre$
+ Else
+  NPrint Messaggio$
+  NPrint SuonoTre$
+  Delay_ #RitardoMessaggi
+  SuonoMancante=True
+ EndIf
+
+ If Exists(SuonoQuattro$)>0
+  LoadSound #SuonoQuattro,SuonoQuattro$
+ Else
+  NPrint Messaggio$
+  NPrint SuonoQuattro$
+  Delay_ #RitardoMessaggi
+  SuonoMancante=True
+ EndIf
+
+ If Exists(SuonoCinque$)>0
+  LoadSound #SuonoCinque,SuonoCinque$
+ Else
+  NPrint Messaggio$
+  NPrint SuonoCinque$
+  Delay_ #RitardoMessaggi
+  SuonoMancante=True
+ EndIf
+
+ If Exists(SuonoSei$)>0
+  LoadSound #SuonoSei,SuonoSei$
+ Else
+  NPrint Messaggio$
+  NPrint SuonoSei$
+  Delay_ #RitardoMessaggi
+  SuonoMancante=True
+ EndIf
+
+ If SuonoMancante=True Then End
+End Statement
+
+Statement MostraIColori{}
+ For Colore.b=0 To 31
+  X.b=Colore MOD 8
+  Y.b=Colore/8
+  WBox X*27,Y*27,X*27+17,Y*27+17,Colore
+  WLocate X*27,Y*27
+  Print Colore
+ Next
+End Statement
+
+Statement MettiInPausaIlGioco{}
+ FadePalette #TavolozzaColori,#TavolozzaColori,.5:Use Palette #TavolozzaColori
+ Messaggio$="<Game paused>"
+ LunghezzaTesto=TextLength_(RastPort(#Finestra),Messaggio$,Len(Messaggio$))
+ XTesto=(InnerWidth-LunghezzaTesto)/2
+ YTesto=(InnerHeight-9)/2
+ Repeat
+  WColour Rnd(2^#ProfonditaSchermo-1)
+  WLocate XTesto,YTesto:Print Messaggio$
+  TastoPremuto$=LCase$(Inkey$)
+  VWait
+ Until TastoPremuto$="p"
+ WColour #_White,#_BackGreen
+ FadePalette #TavolozzaColori,#TavolozzaColori,2:Use Palette #TavolozzaColori
+End Statement
+
+Statement Informazioni{}
+SHARED ConCosaGiochi$
+SHARED AggiustaLaPosizioneDopoIlSalto
+SHARED DirezioneSalto
+SHARED EsseriOstili
+SHARED HaiSaltato
+SHARED ImmagineGiocatore
+SHARED StaiCalciando
+SHARED TiStaiMuovendo
+SHARED TiStaiMuovendoColJoypad
+SHARED XBlocco
+SHARED XBloccoDelTopo
+SHARED XGiocatore
+SHARED XGiocatoreNellaMappa
+SHARED XMappa
+SHARED YBlocco
+SHARED YBloccoDelTopo
+SHARED YGiocatore
+SHARED YGiocatoreNellaMappa
+SHARED YMappa
+ WLocate 16,16:Print"BlockX>",XBlocco," BlockY>",YBlocco
+ WLocate 16,24:Print "MapX>",XMappa," PlayerInMapX>",XGiocatoreNellaMappa
+ Print " PlayerX>",XGiocatore-XMappa*16
+ WLocate 16,32:Print "MapY>",YMappa," PlayerInMapY>",YGiocatoreNellaMappa
+ Print " PlayerY>",YGiocatore-YMappa*16
+ WLocate 16,40:Print "PlayerShape>",ImmagineGiocatore
+ Select ConCosaGiochi$
+ Case "Mouse"
+  WLocate 16,56:Print "YouAreMovingWithMouse>",TiStaiMuovendo
+  WLocate 16,64:Print "BlockDistanceX>",XBloccoDelTopo-(XGiocatoreNellaMappa-XMappa)
+  WLocate 16,72:Print "BlockDistanceY>",YBloccoDelTopo-(YGiocatoreNellaMappa-YMappa)
+ Case "Joypad"
+  WLocate 16,56:Print "YouAreMovingWithJoypad>",TiStaiMuovendoColJoypad
+ End Select
+ WLocate 16,80:Print "YouHaveJumped>",HaiSaltato
+ WLocate 16,88:Print "AdjustXAfterJump>",AggiustaLaPosizioneDopoIlSalto
+ WLocate 16,96:Print "YouAreKicking>",StaiCalciando
+ WLocate 16,104:Print "Baddies>",EsseriOstili
+End Statement
+
+;************************************************
+;* Fine delle procedure ed inizio del programma *
+;******* Procedures end and program start *******
+;************************************************
+
+WBStartup
+
+LeggiITooltype{}
+
+CaricaLeForme{}
+
+RicavaLeForme{}
+
+CaricaLaFonteSteMar002{}
+
+ImpostaLoSchermo{}
+
+ImpostaLaFinestra{False}
+
+CaricaISuoni{}
+
+MostraIColori{}
+Aspetta{500}
+
+If EventoFinestra=#HaiChiusoLaFinestra Then Goto FineDelGioco
+If Tasto=#Escape Then Goto FineDelGioco
+If Tasto<0 Then TastoPremutoDelTopo.b=-Tasto MOD 8
+If TastoPremutoDelTopo=2 OR TastoPremutoDelTopo=6 Then Goto FineDelGioco
+If TastoPremutoDelTopo=0 AND Tasto<0 Then TastoPremutoDelJoypad.b=-Tasto/8
+If TastoPremutoDelJoypad=#_BlueB Then Goto FineDelGioco
+
+ImpostaBitmap{}
+
+AutoCookie On
+
+BlitMode CookieMode
+
+WJam #UnColoreSolo
+
+CreaIlBordoDellaMappa{}
+
+WCls
+WLocate 0,0
+NPrint "Shapes>",Right$(FormeGioco$,31)
+NPrint "Sound1>",Right$(SuonoUno$,31)
+NPrint "Sound2>",Right$(SuonoDue$,31)
+NPrint "Sound3>",Right$(SuonoTre$,31)
+NPrint "Sound4>",Right$(SuonoQuattro$,31)
+NPrint "Sound5>",Right$(SuonoCinque$,31)
+NPrint "Sound6>",Right$(SuonoSei$,31)
+Aspetta{500}
+
+NPrint "Press the left mouse button"
+NPrint "or the red joypad button"
+NPrint "to continue."
+NPrint "Press the blue joypad button"
+NPrint "or the right mouse button"
+NPrint "or the Esc key"
+Print "to quit."
+Aspetta{500}
+
+If EventoFinestra=#HaiChiusoLaFinestra Then Goto FineDelGioco
+If Tasto=#Escape Then Goto FineDelGioco
+If Tasto<0 Then TastoPremutoDelTopo.b=-Tasto MOD 8
+If TastoPremutoDelTopo=2 OR TastoPremutoDelTopo=6 Then Goto FineDelGioco
+If TastoPremutoDelTopo=0 AND Tasto<0 Then TastoPremutoDelJoypad.b=-Tasto/8
+If TastoPremutoDelJoypad=#_BlueB Then Goto FineDelGioco
+
+ImpostaLaFinestra{True}
+
+Repeat
+InizioDelGioco
+
+ Quiet 1
+ SuonoCaduta=False
+ StaiCadendo=0
+ HaiSaltato=False
+ AggiustaLaPosizioneDopoIlSalto=True
+
+;SceltaControllo.b=Request("JumpingAround request","Please select the|game controller","Joypad|Mouse")
+
+ ConCosaGiochi$=""
+ TastoPremutoDelTopo=0
+ TastoPremutoDelJoypad=0
+
+ WCls
+ WLocate 0,0
+ NPrint "Press the red joypad button"
+ NPrint "to play using the joypad."
+ NPrint "Press the left mouse button"
+ NPrint "to play using the mouse."
+ NPrint "Press the blue joypad button"
+ NPrint "to quit."
+ NPrint "Press the right mouse button"
+ NPrint "to quit."
+ Print "Press the Esc key to quit."
+ Repeat
+  Aspetta{500}
+  If EventoFinestra=#HaiChiusoLaFinestra Then Pop Repeat:Goto FineDelGioco
+  If Tasto=#Escape Then Pop Repeat:Pop Repeat:Goto FineDelGioco
+  If Tasto<0 Then TastoPremutoDelTopo.b=-Tasto MOD 8
+  If TastoPremutoDelTopo=2 OR TastoPremutoDelTopo=6 Then Pop Repeat:Goto FineDelGioco
+  If TastoPremutoDelTopo=1 OR TastoPremutoDelTopo=5 Then ConCosaGiochi$="Mouse"
+  If TastoPremutoDelTopo=0 AND Tasto<0 Then TastoPremutoDelJoypad.b=-Tasto/8
+  If TastoPremutoDelJoypad=#_BlueB Then Pop Repeat:Goto FineDelGioco
+  If TastoPremutoDelJoypad=#_RedB Then ConCosaGiochi$="Joypad"
+ Until ConCosaGiochi$="Mouse" OR ConCosaGiochi$="Joypad"
+
+ Select ConCosaGiochi$
+ Case "Mouse"
+  WCls
+  WLocate 0,0
+  NPrint "How to play:"
+  NPrint "Doubleclick mouse buttons"
+  NPrint "LEFT mouse button quickly: jump"
+  NPrint "RIGHT mouse button quickly: kick"
+  NPrint "RIGHT mouse button slowly: move"
+  NPrint "BOTH mouse buttons: quit game"
+  NPrint "Use scroll bars or cursor keys"
+  NPrint "to scroll playmap"
+  NPrint "LEFT mouse button now to play"
+  Print "RIGHT mouse button now to quit"
+
+  FlushEvents #HaiPremutoUnTastoDelTopo
+
+  Repeat
+   Aspetta{500}
+   If EventoFinestra=#HaiChiusoLaFinestra Then Pop Repeat:Goto FineDelGioco
+   If Tasto=#Escape Then Pop Repeat:Pop Repeat:Goto FineDelGioco
+   If Tasto<0 Then TastoPremutoDelTopo=-Tasto MOD 8
+   If TastoPremutoDelTopo=2 OR TastoPremutoDelTopo=6 Then Pop Repeat:Goto FineDelGioco
+  Until TastoPremutoDelTopo>0
+
+  CaricaIlLivello{}
+
+  If Livello>-1
+   LivelloTerminato=False
+   AnteprimaLivello{}
+   FlushEvents
+   Aspetta{500}
+   If EventoFinestra=#HaiChiusoLaFinestra Then Pop Repeat:Goto FineDelGioco
+   If Tasto=#Escape Then Pop Repeat:Goto FineDelGioco
+   If Tasto<0 Then TastoPremutoDelTopo=-Tasto MOD 8
+   If TastoPremutoDelTopo=2 OR TastoPremutoDelTopo=6 Then Pop Repeat:Goto FineDelGioco
+  EndIf
+
+  If Livello=-1
+   Pop Repeat:Goto FineDelGioco
+  Else
+   PosizionaGliEsseriOstiliEdILogoAmiga{}
+   PosizionaIlGiocatore{}
+   XMappa=NuovaXMappa:YMappa=NuovaYMappa:DisegnaLaMappa{}
+   XBlocco=1
+   YBlocco=1
+   MostraIlGiocatore{}
+   SetZone 0,0,0,16*19-1,16*14-1
+  EndIf
+
+  SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+  SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+  Redraw #Finestra,#BarraOrizzontale:Redraw #Finestra,#BarraVerticale
+
+  TitoloFinestra$="Score>"+Str$(Punteggio)+" Lives>"+Str$(ViteGiocatore)+" Level>"+Str$(Livello)
+  WTitle TitoloFinestra$,TitoloSchermo$
+
+  Repeat
+   If TempoSalto>0
+    Salta{}
+   Else
+    Gravita{}
+    If StaiCalciando>0
+     Calcia{}
+    Else
+     If TiStaiMuovendo=True
+      If StaiCadendo=0
+       Muoviti{}
+      EndIf
+     Else
+      If AggiustaLaPosizioneDopoIlSalto=True
+       AggiustaLaPosizioneDopoIlSalto{}
+      EndIf
+     EndIf
+    EndIf
+   EndIf
+   EsseriOstili{}
+   MostraIlGiocatore{}
+   PrendiUnLogoAmiga{}
+   BitMaptoWindow #BitmapSchermo,#Finestra,XS,YS,0,0,LarghezzaInternaFinestra,AltezzaInternaFinestra
+   MossaMappaConITasti=False
+   MossaMappaConLeBarre=False
+   BloccoDelTopo{}
+   If ViteGiocatore=0 Then Pop Repeat:Pop Repeat:Goto FineDelGioco
+   If LivelloTerminato=True Then Livello+1:Pop Repeat:Goto InizioDelGioco
+   CancellaLeImmagini{}
+   EventoFinestra=Event
+   Select EventoFinestra
+   Case #HaiPremutoUnTastoDelTopo
+    If Joyb(0)=3 Then EventoFinestra=#HaiChiusoLaFinestra
+    If Zone(WMouseX,WMouseY)=0
+     TastoPremutoDelTopo=MButtons
+     Select TastoPremutoDelTopo
+     Case 1
+      ResetTimer
+     Case 2
+      ResetTimer
+     Case 5
+      TempoClic=Timer
+      If TempoClic<25 AND TempoSalto=0 AND StaiCadendo=0
+       TempoSalto=.1
+      End If
+     Case 6
+      TempoClic=Timer
+      If TempoSalto=0
+       If TempoClic<25
+        If StaiCalciando=0 Then Calcia{}
+       Else
+        TiStaiMuovendo=True
+        SeiBloccato=0
+       EndIf
+      EndIf
+     End Select
+    EndIf
+   Case #HaiPremutoUnBottone
+    Select GadgetHit
+    Case #BarraVerticale
+     NuovaYMappa=VPropPot(#ListaBottoni,#BarraVerticale)*(YMappaFuori+1)
+     If YMappa<>NuovaYMappa
+      YMappa=NuovaYMappa
+      YMappaPrimaDelSalto=YMappa
+     EndIf
+    Case #BarraOrizzontale
+     NuovaXMappa=HPropPot(#ListaBottoni,#BarraOrizzontale)*(XMappaFuori+1)
+     If XMappa<>NuovaXMappa
+      XMappa=NuovaXMappa
+     EndIf
+    End Select
+    DisegnaLaMappa{}
+    MossaMappaConLeBarre=True
+   Case #HaiRilasciatoUnBottone
+    Select GadgetHit
+    Case #BarraVerticale
+     NuovaYMappa=VPropPot(#ListaBottoni,#BarraVerticale)*(YMappaFuori+1)
+     If YMappa<>NuovaYMappa
+      YMappa=NuovaYMappa
+      YMappaPrimaDelSalto=YMappa
+     EndIf
+    Case #BarraOrizzontale
+     NuovaXMappa=HPropPot(#ListaBottoni,#BarraOrizzontale)*(XMappaFuori+1)
+     If XMappa<>NuovaXMappa
+      XMappa=NuovaXMappa
+     EndIf
+    End Select
+    DisegnaLaMappa{}
+    MossaMappaConLeBarre=True
+   Case #HaiPremutoUnTasto
+    TastoPremuto$=Inkey$
+    Select TastoPremuto$
+    Case TastoEsc$
+     EventoFinestra=#HaiChiusoLaFinestra
+    Case TastoCursoreSu$
+     YBlocco-16
+     Nord{}
+     SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+     Redraw #Finestra,#BarraVerticale
+    Case TastoCursoreGiu$
+     YBlocco+16
+     Sud{}
+     SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+     Redraw #Finestra,#BarraVerticale
+    Case TastoCursoreDestra$
+     XBlocco+16
+     Est{}
+     SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+     Redraw #Finestra,#BarraOrizzontale
+    Case TastoCursoreSinistra$
+     XBlocco-16
+     Ovest{}
+     SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+     Redraw #Finestra,#BarraOrizzontale
+    Case "p"
+     MettiInPausaIlGioco{}
+    Case "i"
+     Select Informazioni
+     Case False
+      Informazioni=True
+     Case True
+      Informazioni=False
+     End Select
+    End Select
+   End Select
+
+   If Punteggio>PunteggioPrecedente.w OR ViteGiocatore<ViteGiocatorePrecedenti.w
+    TitoloFinestra$="Score>"+Str$(Punteggio)+" Lives>"+Str$(ViteGiocatore)+" Level>"+Str$(Livello)
+    WTitle TitoloFinestra$,TitoloSchermo$
+    PunteggioPrecedente=Punteggio:ViteGiocatorePrecedenti=ViteGiocatore
+   EndIf
+
+   If Informazioni=True Then Informazioni{}
+
+  Until EventoFinestra=#HaiChiusoLaFinestra
+  If EventoFinestra=#HaiChiusoLaFinestra Then Goto FineDelGioco
+ Case "Joypad"
+  WCls
+  WLocate 0,0
+  NPrint "How to play:"
+  NPrint "FORWARD or REVERSE buttons: jump"
+  NPrint "RED button: kick"
+  NPrint "DIRECTIONS switches: move"
+  NPrint "BLUE button: quit game"
+  NPrint "Use scroll bars or cursor keys"
+  NPrint "to scroll playmap"
+  NPrint "PLAY button now to play"
+  Print "BLUE button now to quit"
+
+  Aspetta{500}
+  If Tasto<0 Then TastoPremutoDelJoypad=-Tasto/8
+  If Tasto=#Escape Then Pop Repeat:Goto FineDelGioco
+  If TastoPremutoDelJoypad=#_BlueB Then Pop Repeat:Goto FineDelGioco
+
+  CaricaIlLivello{}
+
+  If Livello>-1
+   AnteprimaLivello{}
+   Aspetta{500}
+   If Tasto<0 Then TastoPremutoDelJoypad=-Tasto/8
+   If TastoPremutoDelJoypad=#_BlueB Then Pop Repeat:Goto FineDelGioco
+  EndIf
+
+  If Livello=-1
+   Pop Repeat:Goto FineDelGioco
+  Else
+   PosizionaGliEsseriOstiliEdILogoAmiga{}
+   PosizionaIlGiocatore{}
+   XMappa=NuovaXMappa:YMappa=NuovaYMappa:DisegnaLaMappa{}
+   LivelloTerminato=False
+   XBlocco=1
+   YBlocco=1
+   MostraIlGiocatore{}
+  EndIf
+
+  SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+  SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+  Redraw #Finestra,#BarraOrizzontale:Redraw #Finestra,#BarraVerticale
+
+  TitoloFinestra$="Score>"+Str$(Punteggio)+" Lives>"+Str$(ViteGiocatore)+" Level>"+Str$(Livello)
+  WTitle TitoloFinestra$,TitoloSchermo$
+
+  Repeat
+   If TempoSalto>0
+    Salta{}
+   Else
+    Gravita{}
+    If StaiCalciando>0
+     Calcia{}
+    Else
+     If TiStaiMuovendoColJoypad=True
+      If StaiCadendo=0
+       MuovitiColJoypad{}
+      EndIf
+     EndIf
+    Else
+     If AggiustaLaPosizioneDopoIlSalto=True
+      AggiustaLaPosizioneDopoIlSalto{}
+     EndIf
+    EndIf
+   EndIf
+   EsseriOstili{}
+   MostraIlGiocatore{}
+   PrendiUnLogoAmiga{}
+   BitMaptoWindow #BitmapSchermo,#Finestra,XS,YS,0,0,LarghezzaInternaFinestra,AltezzaInternaFinestra
+   MossaMappaConITasti=False
+   MossaMappaConLeBarre=False
+   If ViteGiocatore=0 Then Pop Repeat:Pop Repeat:Goto FineDelGioco
+   If LivelloTerminato=True Then Livello+1:Pop Repeat:Goto InizioDelGioco
+   CancellaLeImmagini{}
+   EventoFinestra=Event
+   Select EventoFinestra
+   Case 0
+    TastoPremutoDelJoypad=Gameb(1)
+    Select TastoPremutoDelJoypad
+    Case #_BlueB
+     EventoFinestra=#HaiChiusoLaFinestra
+    Case #_ReverseB
+     If TempoSalto=0 AND StaiCadendo=0 Then TempoSalto=.1
+    Case #_ForwardB
+     If TempoSalto=0 AND StaiCadendo=0 Then TempoSalto=.1
+    Case #_RedB
+     If TempoSalto=0 AND StaiCalciando=0 Then Calcia{}
+    End Select
+    If Joyr(1)<>#NessunaDirezioneLevaJoypad AND TempoSalto=0 AND StaiCadendo=0
+     TiStaiMuovendoColJoypad=True
+     SeiBloccato=0
+    EndIf
+   Case #HaiRilasciatoUnBottone
+    Select GadgetHit
+    Case #BarraVerticale
+     NuovaYMappa=VPropPot(#ListaBottoni,#BarraVerticale)*YMappaFuori
+     If YMappa<>NuovaYMappa
+      YMappa=NuovaYMappa
+      YMappaPrimaDelSalto=YMappa
+     EndIf
+    Case #BarraOrizzontale
+     NuovaXMappa=HPropPot(#ListaBottoni,#BarraOrizzontale)*XMappaFuori
+     If XMappa<>NuovaXMappa
+      XMappa=NuovaXMappa
+     EndIf
+    End Select
+    DisegnaLaMappa{}
+    MossaMappaConLeBarre=True
+   Case #HaiPremutoUnTasto
+    TastoPremuto$=LCase$(Inkey$)
+    Select TastoPremuto$
+    Case TastoEsc$
+     EventoFinestra=#HaiChiusoLaFinestra
+    Case TastoCursoreSu$
+     YBlocco-16
+     Nord{}
+     SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+     Redraw #Finestra,#BarraVerticale
+    Case TastoCursoreGiu$
+     YBlocco+16
+     Sud{}
+     SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+     Redraw #Finestra,#BarraVerticale
+    Case TastoCursoreDestra$
+     XBlocco+16
+     Est{}
+     SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+     Redraw #Finestra,#BarraOrizzontale
+    Case TastoCursoreSinistra$
+     XBlocco-16
+     Ovest{}
+     SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+     Redraw #Finestra,#BarraOrizzontale
+    Case "p"
+     MettiInPausaIlGioco{}
+    Case "i"
+     Select Informazioni
+     Case False
+      Informazioni=True
+     Case True
+      Informazioni=False
+     End Select
+    End Select
+   End Select
+
+   If Punteggio>PunteggioPrecedente OR ViteGiocatore<ViteGiocatorePrecedenti
+    TitoloFinestra$="Score>"+Str$(Punteggio)+" Lives>"+Str$(ViteGiocatore)+" Level>"+Str$(Livello)
+    WTitle TitoloFinestra$,TitoloSchermo$
+    PunteggioPrecedente=Punteggio:ViteGiocatorePrecedenti=ViteGiocatore
+   EndIf
+
+   If Informazioni=True Then Informazioni{}
+
+  Until EventoFinestra=#HaiChiusoLaFinestra
+ End Select
+ If EventoFinestra=#HaiChiusoLaFinestra Then Pop Repeat:Goto FineDelGioco
+Forever
+FineDelGioco
+If LivelloTerminato=True
+ WCls
+ Messaggio$="* YOU HAVE COMPLETED ALL THE LEVELS! *"
+ LunghezzaTesto=TextLength_(RastPort(#Finestra),Messaggio$,Len(Messaggio$))
+ XTesto=(InnerWidth-LunghezzaTesto)/2
+ YTesto=(InnerHeight-AltezzaFonte*3)/2
+ WLocate XTesto,YTesto:Print "**************************************":YTesto+AltezzaFonte
+ WLocate XTesto,YTesto:Print Messaggio$:YTesto+AltezzaFonte
+ WLocate XTesto,YTesto:Print "**************************************"
+ Aspetta{250}
+EndIf
+WCls
+Messaggio$="* GAME OVER *"
+LunghezzaTesto=TextLength_(RastPort(#Finestra),Messaggio$,Len(Messaggio$))
+XTesto=(InnerWidth-LunghezzaTesto)/2
+YTesto=(InnerHeight-AltezzaFonte*3)/2
+WLocate XTesto,YTesto:Print "*************":YTesto+#AltezzaFonteSteMar002
+WLocate XTesto,YTesto:Print Messaggio$:YTesto+#AltezzaFonteSteMar002
+WLocate XTesto,YTesto:Print "*************"
+Aspetta{250}
+End
