@@ -1,0 +1,1409 @@
+;-> JumpingAroundLED by Stefano Maria Regattin
+;d> 21 novembre 2001 da JumpingAround
+;m> 22,23,24,30 novembre 2001
+;m> 1,2,12,13,14,15,16,31 dicembre 2001
+;m> 10,11,12,13,14 gennaio 2002
+;m> primo maggio 2003
+;m> Ferragosto 2003
+;m> 23 ottobre 2003
+;m> 7,14,20,21 gennaio 2007
+;m> 25 febbraio 2007
+;m> 8,9 dicembre 2009
+;m> 24 novembre 2017
+;m> 5 gennaio 2018
+;------------------
+
+JMP InizioDelProgramma
+
+Dc.b "$VER: JumpingAroundLED 1.3 (5.1.2018)"
+
+Even
+
+InizioDelProgramma
+
+#BottoneDimensionamentoFinestra=1
+#SpostamentoFinestra=2
+#ProfonditaFinestra=4
+#BottoneChiusuraFinestra=8
+#RicordaDisegnoDestra=16; $10
+#RicordaDisegnoSotto=32;  $20
+#FinestraComeSfondo=256;  $100
+#DammiZeroZero=1024;      $400
+#FinestraSenzaBordo=2048; $800
+#FinestraAttiva=4096;     $1000
+
+#HaiPremutoUnTastoDelTopo=8
+#HaiPremutoUnBottone=32;   $20
+#HaiRilasciatoUnBottone=64;$40
+#HaiChiusoLaFinestra=512;  $200
+#HaiPremutoUnTasto=1024;   $400
+#HaiAttivatoUnaFinestra;   $40000
+#MovimentoOrizzontale=64
+#MovimentoVerticale=128
+
+#UnColoreSolo=0
+#DueColori=1
+
+#AltezzaBitmap=16*16
+#AltezzaMappa=32
+#BarraOrizzontale=0
+#BarraVerticale=1
+#BitmapSchermo=0
+#Fonte=0
+#LarghezzaBitmap=16*21
+#LarghezzaMappa=40
+
+#Vuoto=0
+#Bordo=1
+#Piattaforma=2
+#Scala=3
+#ScalaSuPiattaforma=4
+#LogoAmiga=5
+#Draghetto=85
+#EssereOstile=77
+
+#_PlayB=1
+#_ReverseB=2
+#_ForwardB=4
+#_GreenB=8
+#_YellowB=16
+#_RedB=32
+#_BlueB=64
+
+#LevaSu=0
+#LevaSuDestra=1
+#LevaDestra=2
+#LevaGiuDestra=3
+#LevaGiu=4
+#LevaGiuSinistra=5
+#LevaSinistra=6
+#LevaSuSinistra=7
+#NessunaDirezioneLeva=8
+
+#LineFeed=10
+#Escape=27
+#CursorUp=28
+#CursorDown=29
+#CursorRight=30
+#CursorLeft=31
+
+#MassimoEsseriOstili=50
+
+#Schermo=0
+#ListaBottoni=0
+#ProfonditaSchermo=5
+#TavolozzaColori=0
+
+#FinestraGioco=0
+#FinestraBlocchi=1
+
+#_BackGreen=0
+#_White=1
+#_Grey1=2
+#_Grey2=3
+#_Grey3=4
+#_Grey4=5
+#_Grey5=6
+#_Black=7
+#_Red=8
+#_Yellow=9
+#_Green=10
+#_Cyan=11
+#_Blue=12
+#_DarkPurple=13
+#_LightPurple=14
+#_Pink4=15
+#_Pink3=16
+#_Pink2=17
+#_Pink1=18
+#_LightBlue4=19
+#_LightBlue3=20
+#_LightBlue2=21
+#_LightBlue1=22
+#_Orange5=23
+#_Orange4=24
+#_Orange3=25
+#_Orange2=26
+#_Orange1=27
+#_DarkRed=28
+#_DarkYellow=29
+#_DarkCyan=30
+#_DarkBlue=31
+
+DEFTYPE .b MossaMappaConITasti,MossaMappaConLeBarre,TiStaiMuovendo,TiStaiMuovendoColJoypad
+DEFTYPE .w
+
+Dim MappaBlocchi.b(#LarghezzaMappa-1,#AltezzaMappa-1)
+
+NuovaLinea$=Chr$(#LineFeed)
+TastoCursoreSu$=Chr$(#CursorUp)
+TastoCursoreGiu$=Chr$(#CursorDown)
+TastoCursoreDestra$=Chr$(#CursorRight)
+TastoCursoreSinistra$=Chr$(#CursorLeft)
+TastoEsc$=Chr$(#Escape)
+
+IconaProgramma$=ProgPath$+".info"
+
+PercorsoProgramma$=ProgDir$
+
+TitoloSchermo$="JumpingAround Levels EDitor"
+
+EventoFinestre.l=0
+Livello.b=0
+LivelloModificato.b=-1
+Tasto.l=0
+
+XBloccoJoypad=0
+YBloccoJoypad=13
+
+XMappa=0
+YMappa=18
+
+XMappaFuori=#LarghezzaMappa-(#LarghezzaBitmap/16-2)
+YMappaFuori=#AltezzaMappa-(#AltezzaBitmap/16-2)
+
+XS=16
+YS=16
+
+Statement Aspetta{TempoDaAspettare.l}
+SHARED EventoFinestra
+SHARED Tasto
+ If TempoDaAspettare>0 Then TempoTrascorso.l=Timer
+ EventoFinestra=0
+ Tasto=0
+ Repeat
+  EventoFinestra=Event
+  VWait
+  Select EventoFinestra
+  Case #HaiPremutoUnTastoDelTopo
+   TastoPremutoDelTopo.b=MButtons
+   If TastoPremutoDelTopo>0
+    Tasto=-TastoPremutoDelTopo
+    FineCicloDiAttesa.b=True
+   EndIf
+  Case #HaiChiusoLaFinestra
+   FineCicloDiAttesa=True
+  Case #HaiPremutoUnTasto
+   TastoGrigio.l=(Qualifier-$8000)*256
+   If TastoGrigio>0
+    Tasto=TastoGrigio
+    FineCicloDiAttesa=True
+   EndIf
+   TastoPremuto$=Inkey$
+   If TastoPremuto$<>""
+    Tasto=Asc(TastoPremuto$)
+    FineCicloDiAttesa=True
+   EndIf
+  Default
+   TastoPremutoDelJoypad.b=Gameb(1)
+   If TastoPremutoDelJoypad>0
+    Tasto=-TastoPremutoDelJoypad*8
+    FineCicloDiAttesa=True
+   EndIf
+  End Select
+  If TempoDaAspettare>0
+   If Timer-TempoTrascorso>TempoDaAspettare Then FineCicloDiAttesa=True
+  EndIf
+ Until FineCicloDiAttesa=True
+End Statement
+
+Function$ ControllaIToolType{ToolType$}
+ If Left$(ToolType$,1)=Chr$(34) AND Right$(ToolType$,1)=Chr$(34)
+  ToolType$=UnLeft$(UnRight$(ToolType$,1),1)
+ EndIf
+ Function Return ToolType$
+End Function
+
+Statement LeggiITooltype{}
+SHARED IconaProgramma$
+SHARED FormeGioco$
+SHARED PercorsoProgramma$
+SHARED SuonoUno$
+SHARED SuonoDue$
+SHARED SuonoTre$
+SHARED SuonoQuattro$
+SHARED SuonoCinque$
+SHARED SuonoSei$
+ ToolTypeLetti.l=GetIconObject(IconaProgramma$)
+ If ToolTypeLetti>0
+  NuoveFormeGioco$=FindToolValue("GAMESHAPES")
+
+  NuoveFormeGioco$=ControllaIToolType{NuoveFormeGioco$}
+
+  If NuoveFormeGioco$<>""
+   FormeGioco$=NuoveFormeGioco$
+  Else
+   FormeGioco$=PercorsoProgramma$+"/Original.32Cols"
+  EndIf
+
+  FreeIconObject
+ Else
+  FormeGioco$=PercorsoProgramma$+"/Original.32Cols"
+ EndIf
+End Statement
+
+Statement CreaIlIlBordoDellaMappa{}
+SHARED MappaBlocchi()
+ For YBlocco=0 To #AltezzaMappa-1
+  For XBlocco=0 To #LarghezzaMappa-1
+   Select YBlocco
+   Case 0
+    MappaBlocchi(XBlocco,YBlocco)=1
+   Case #AltezzaMappa-1
+    MappaBlocchi(XBlocco,YBlocco)=1
+   Default
+    Select XBlocco
+    Case 0
+     MappaBlocchi(XBlocco,YBlocco)=1
+    Case #LarghezzaMappa-1
+     MappaBlocchi(XBlocco,YBlocco)=1
+    End Select
+   End Select
+  Next XBlocco
+ Next YBlocco
+End Statement
+
+Statement MostraSeIlLivelloEStatoModificato{}
+SHARED AltezzaInternaFinestra
+SHARED LarghezzaInternaFinestra
+SHARED Livello
+SHARED LivelloModificato
+ Use Window #FinestraGioco
+ WJam #DueColori
+ WLocate LarghezzaInternaFinestra,AltezzaInternaFinestra
+ If LivelloModificato>-1 AND LivelloModificato=Livello
+  WColour #_Red,#_BackGreen:Print "M"
+ Else
+  WColour #_Green,#_BackGreen:Print "U"
+ EndIf
+ WJam #UnColoreSolo
+End Statement
+
+Statement DisegnaLOggetto{Immagine,XImmagine,YImmagine,Modo$}
+SHARED Editazione$
+SHARED ImmagineDue
+SHARED ImmagineUno
+SHARED EsseriOstili
+SHARED ImmagineAttiva
+SHARED Livello
+SHARED LivelloModificato
+SHARED MappaBlocchi()
+SHARED MessoDraghettoBlu
+SHARED XBloccoDelTopo
+SHARED XBloccoJoypad
+SHARED XMappa
+SHARED YBloccoDelTopo
+SHARED YBloccoJoypad
+SHARED YMappa
+ If Modo$="Edit"
+  If XBloccoDelTopo+XMappa=0 OR YBloccoDelTopo+YMappa=0 Then Statement Return
+  If XBloccoDelTopo+XMappa=#LarghezzaMappa-1 OR YBloccoDelTopo+YMappa=#AltezzaMappa-1 Then Statement Return
+  Select Editazione$
+  Case "Mouse"
+   XFinestra=WMouseX
+   YFinestra=WMouseY
+  Case "Joypad"
+   XFinestra=16*XBloccoJoypad
+   YFinestra=16*YBloccoJoypad
+  End Select
+  Select ImmagineAttiva
+  Case 1
+   ImmagineFalsa.b=ImmagineUno
+  Case 2
+   ImmagineFalsa=ImmagineDue
+  End Select
+  Select ImmagineFalsa
+  Case 7
+   ImmagineVera=#Draghetto
+  Case 6
+   ImmagineVera=#EssereOstile
+  Default
+   ImmagineVera=ImmagineFalsa
+  End Select
+  XImmagine=16+16*XBloccoDelTopo
+  YImmagine=16+16*YBloccoDelTopo
+  Blocco.b=MappaBlocchi(XBloccoDelTopo+XMappa,YBloccoDelTopo+YMappa)
+  If Zone(XFinestra,YFinestra)=0 Then DentroLaZona.b=True
+ EndIf
+ If Modo$="Draw"
+  If XImmagine>=0 AND YImmagine>=0 AND XImmagine+15<#LarghezzaBitmap AND YImmagine+15<#AltezzaBitmap
+   DentroLaBitmap.b=True
+   ImmagineVera=Immagine
+  EndIf
+ EndIf
+ If DentroLaZona=True OR DentroLaBitmap=True
+  Select ImmagineVera
+  Case #Draghetto
+   XImmagine+8:YImmagine+8
+   If Modo$="Edit"
+    If MessoDraghettoBlu=False
+     Boxf XImmagine-8,YImmagine-8,XImmagine+7,YImmagine+7,0
+     Blit #Draghetto,XImmagine,YImmagine
+     If Blocco=#EssereOstile Then EsseriOstili-1
+     Blocco=#Draghetto
+     MessoDraghettoBlu=True
+     LivelloModificato=Livello:MostraSeIlLivelloEStatoModificato{}
+    EndIf
+   EndIf
+   If Modo$="Draw"
+    Boxf XImmagine-8,YImmagine-8,XImmagine+7,YImmagine+7,0
+    Blit #Draghetto,XImmagine,YImmagine
+   EndIf
+  Case #EssereOstile
+   XImmagine+8:YImmagine+8
+   If Modo$="Edit"
+    If Blocco<>#EssereOstile
+     If EsseriOstili<#MassimoEsseriOstili
+      Boxf XImmagine-8,YImmagine-8,XImmagine+7,YImmagine+7,0
+      Blit #EssereOstile,XImmagine,YImmagine
+      EsseriOstili+1
+      Blocco=#EssereOstile
+      LivelloModificato=Livello:MostraSeIlLivelloEStatoModificato{}
+     EndIf
+    EndIf
+   EndIf
+   If Modo$="Draw"
+    Boxf XImmagine-8,YImmagine-8,XImmagine+7,YImmagine+7,0
+    Blit #EssereOstile,XImmagine,YImmagine
+   EndIf
+  Case #Vuoto
+   Boxf XImmagine,YImmagine,XImmagine+15,YImmagine+15,0
+   If Modo$="Edit"
+    If Blocco=#Draghetto Then MessoDraghettoBlu=False
+    If Blocco=#EssereOstile Then EsseriOstili-1
+    Blocco=#Vuoto
+    LivelloModificato=Livello:MostraSeIlLivelloEStatoModificato{}
+   EndIf
+  Default
+   Boxf XImmagine,YImmagine,XImmagine+15,YImmagine+15,0
+   If Modo$="Edit"
+    If Blocco=#Draghetto Then MessoDraghettoBlu=False
+    If Blocco=#EssereOstile Then EsseriOstili-1
+    Blocco=ImmagineVera
+    LivelloModificato=Livello:MostraSeIlLivelloEStatoModificato{}
+   EndIf
+   Blit ImmagineVera,XImmagine,YImmagine
+  End Select
+ EndIf
+ If Modo$="Edit" Then MappaBlocchi(XBloccoDelTopo+XMappa,YBloccoDelTopo+YMappa)=Blocco
+End Statement
+
+Statement Nord{}
+SHARED MappaBlocchi()
+SHARED XMappa
+SHARED YBlocco
+SHARED YMappa
+SHARED YMappaPrimaDelSalto
+SHARED YS
+ If YBlocco<1
+  YBlocco=16
+  YS=16
+  YMappaPrimaDelSalto=YMappa
+  If YMappa>0
+   YMappa-1
+   For Blocchi.b=0 To 18
+    XBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa+Blocchi,YMappa)
+    DisegnaLOggetto{Blocco,XBlocco,0,"Draw"}
+   Next Blocchi
+;   BlockScroll 16,0,16*19,16*14,16,16
+   GetaShape 99,16,0,16*19,16*14
+   Cls
+   Block 99,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  YBlocco-1
+  YS-1
+ EndIf
+End Statement
+
+Statement Est{}
+SHARED MappaBlocchi()
+SHARED XBlocco
+SHARED XMappa
+SHARED XS
+SHARED YMappa
+ If XBlocco>16
+  XBlocco=1
+  XS=16
+  If XMappa+18<#LarghezzaMappa-1
+   XMappa+1
+   For Blocchi.b=0 To 13
+    YBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa+18,YMappa+Blocchi)
+    DisegnaLOggetto{Blocco,16*20,YBlocco,"Draw"}
+   Next Blocchi
+   BlockScroll 16*2,16,16*19,16*14,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  XBlocco+1
+  XS+1
+ EndIf
+End Statement
+
+Statement Sud{}
+SHARED MappaBlocchi()
+SHARED XMappa
+SHARED YBlocco
+SHARED YMappa
+SHARED YMappaPrimaDelSalto
+SHARED YS
+ If YBlocco>16
+  YBlocco=1
+  YS=16
+  YMappaPrimaDelSalto=YMappa
+  If YMappa+13<#AltezzaMappa-1
+   YMappa+1
+   For Blocchi.b=0 To 18
+    XBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa+Blocchi,YMappa+13)
+    DisegnaLOggetto{Blocco,XBlocco,16*15,"Draw"}
+   Next Blocchi
+   BlockScroll 16,16*2,16*19,16*14,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  YBlocco+1
+  YS+1
+ EndIf
+End Statement
+
+Statement Ovest{}
+SHARED MappaBlocchi()
+SHARED XBlocco
+SHARED XMappa
+SHARED XS
+SHARED YMappa
+ If XBlocco<1
+  XBlocco=16
+  XS=16
+  If XMappa>0
+   XMappa-1
+   For Blocchi.b=0 To 13
+    YBlocco=16+16*Blocchi
+    Blocco.b=MappaBlocchi(XMappa,YMappa+Blocchi)
+    DisegnaLOggetto{Blocco,0,YBlocco,"Draw"}
+   Next Blocchi
+   BlockScroll 0,16,16*19,16*14,16,16
+   MossaMappaConITasti=True
+  EndIf
+ Else
+  XBlocco-1
+  XS-1
+ EndIf
+End Statement
+
+Statement DisegnaLaMappa{}
+SHARED MappaBlocchi()
+SHARED XMappa
+SHARED YMappa
+ For YBlocco=0 To 13
+  For XBlocco=0 To 18
+   Blocco.b=MappaBlocchi(XMappa+XBlocco,YMappa+YBlocco)
+   DisegnaLOggetto{Blocco,16+16*XBlocco,16+16*YBlocco,"Draw"}
+  Next XBlocco
+ Next YBlocco
+End Statement
+
+Statement BloccoDelTopo{}
+SHARED Editazione$
+SHARED XBloccoJoypad
+SHARED YBloccoJoypad
+SHARED XBloccoDelTopo
+SHARED YBloccoDelTopo
+ Select Editazione$
+ Case "Mouse"
+  If Zone(WMouseX,WMouseY)=0
+   XTopo=WMouseX
+   YTopo=WMouseY
+   XBloccoDelTopo=XTopo/16
+   YBloccoDelTopo=YTopo/16
+  EndIf
+ Case "Joypad"
+  If Zone(16*XBloccoJoypad,16*YBloccoJoypad)=0
+   XBloccoDelTopo=XBloccoJoypad
+   YBloccoDelTopo=YBloccoJoypad
+  EndIf
+ End Select
+ WLine 16*XBloccoDelTopo+1,16*YBloccoDelTopo+1,16*XBloccoDelTopo+14,16*YBloccoDelTopo+1,1
+ WLine 16*XBloccoDelTopo+14,16*YBloccoDelTopo+1,16*XBloccoDelTopo+14,16*YBloccoDelTopo+14,1
+ WLine 16*XBloccoDelTopo+14,16*YBloccoDelTopo+14,16*XBloccoDelTopo+1,16*YBloccoDelTopo+14,1
+ WLine 16*XBloccoDelTopo+1,16*YBloccoDelTopo+14,16*XBloccoDelTopo+1,16*YBloccoDelTopo+1,1
+End Statement
+
+Statement CaricaLaFonteSteMar002{}
+ If Exists("FONTS:SteMar002.font")>0 AND Exists("FONTS:SteMar002/9f")>0
+  AltezzaFonte.b=9:LoadFont #Fonte,"SteMar002.font",AltezzaFonte
+ Else
+  AltezzaFonte=8:LoadFont #Fonte,"topaz.font",AltezzaFonte
+ EndIf
+End Statement
+
+Statement CaricaLeForme{}
+SHARED FormeGioco$
+ If Exists(FormeGioco$)>0
+  Screen #Schermo,#ProfonditaSchermo
+  LoadScreen #Schermo,FormeGioco$,#TavolozzaColori
+  Use Palette #TavolozzaColori
+  ScreensBitMap #Schermo,#BitmapSchermo
+ Else
+  Messaggio$="Non trovo l'immagine delle forme!|"
+  Messaggio$+"I cannot find the shapes image!"
+  Request "JumpingAround",Messaggio$,"Noo!"
+  End
+ EndIf
+End Statement
+
+Statement RicavaLeForme{}
+ AutoCookie On
+ GetaShape 1, 0,68,16,16:Boxf  0,68,15, 83,0:Delay_ 5
+ GetaShape 2,17,68,16,16:Boxf 17,68,33, 83,0:Delay_ 5
+ GetaShape 3, 0,85,16,16:Boxf  0,85,15,100,0:Delay_ 5
+ GetaShape 4,17,85,16,16:Boxf 17,85,33,100,0:Delay_ 5
+ GetaShape 5,34,68,16,16:Boxf 34,68,49, 83,0:Delay_ 5
+
+ GetaShape 75,68, 0,16,16:Handle 75,8,8:Boxf 68, 0, 83,15,0:Delay_ 5
+ GetaShape 76,68,17,16,16:Handle 76,8,8:Boxf 68,17, 83,32,0:Delay_ 5
+ GetaShape 77,68,34,16,16:Handle 77,8,8:Boxf 68,34, 83,49,0:Delay_ 5
+ GetaShape 78,68,51,16,16:Handle 78,8,8:Boxf 68,51, 83,66,0:Delay_ 5
+
+ GetaShape 79,85, 0,16,16:Handle 79,8,8:Boxf 85, 0,100,15,0:Delay_ 5
+ GetaShape 80,85,17,16,16:Handle 80,8,8:Boxf 85,17,100,32,0:Delay_ 5
+ GetaShape 81,85,34,16,16:Handle 81,8,8:Boxf 85,34,100,49,0:Delay_ 5
+ GetaShape 82,85,51,16,16:Handle 82,8,8:Boxf 85,51,100,66,0:Delay_ 5
+
+ GetaShape 83,51, 0,16,16:Handle 83,8,8:Boxf 51, 0, 66,15,0:Delay_ 5
+ GetaShape 84,51,17,16,16:Handle 84,8,8:Boxf 51,17, 66,32,0:Delay_ 5
+ GetaShape 85,51,34,16,16:Handle 85,8,8:Boxf 51,34, 66,49,0:Delay_ 5
+ GetaShape 86,51,51,16,16:Handle 86,8,8:Boxf 51,51, 66,66,0:Delay_ 5
+
+ GetaShape 87, 0, 0,16,16:Handle 87,8,8:Boxf  0, 0, 15,15,0:Delay_ 5
+ GetaShape 88,17, 0,16,16:Handle 88,8,8:Boxf 17, 0, 32,15,0:Delay_ 5
+ GetaShape 89,34, 0,16,16:Handle 89,8,8:Boxf 34, 0, 49,15,0:Delay_ 5
+ GetaShape 90, 0,17,16,16:Handle 90,8,8:Boxf  0,17, 15,32,0:Delay_ 5
+ GetaShape 91,17,17,16,16:Handle 91,8,8:Boxf 17,17, 32,32,0:Delay_ 5
+ GetaShape 92,34,17,16,16:Handle 92,8,8:Boxf 34,17, 49,32,0:Delay_ 5
+ GetaShape 93, 0,34,16,16:Handle 93,8,8:Boxf  0,34, 15,49,0:Delay_ 5
+ GetaShape 94,17,34,16,16:Handle 94,8,8:Boxf 17,34, 32,49,0:Delay_ 5
+ GetaShape 95,34,34,16,16:Handle 95,8,8:Boxf 34,34, 49,49,0:Delay_ 5
+ GetaShape 96, 0,51,16,16:Handle 96,8,8:Boxf  0,51, 15,66,0:Delay_ 5
+ GetaShape 97,17,51,16,16:Handle 97,8,8:Boxf 17,51, 32,66,0:Delay_ 5
+ GetaShape 98,34,51,16,16:Handle 98,8,8:Boxf 34,51, 49,66,0:Delay_ 5
+ CloseScreen #Schermo
+End Statement
+
+Statement ImpostaLoSchermo{}
+SHARED LunXSchermo
+SHARED LunYSchermo
+ Use IntuiFont #Fonte
+ ScreenPens #_DarkRed,#_White,#_Grey2,#_Grey1,#_Blue,#_Grey3,#_Red
+ Screen #Schermo,#ProfonditaSchermo,"JumpingAround Level EDitor"
+ Use Palette #TavolozzaColori
+ IndirizzoSchermo.l=Peek.l(Addr Screen(#Schermo))
+ LunXSchermo=Peek.w(IndirizzoSchermo+12)
+ LunYSchermo=Peek.w(IndirizzoSchermo+14)
+End Statement
+
+Statement ImpostaLaFinestra{PerIlGioco}
+SHARED AltezzaInternaFinestra
+SHARED LarghezzaInternaFinestra
+SHARED LunXSchermo
+SHARED LunYSchermo
+ TitoloFinestra$="www.stefanomaria.altervista.org"
+ If PerIlGioco=False
+  TipoFinestra.l=#DammiZeroZero+#FinestraAttiva
+  Window #FinestraGioco,0,12,LunXSchermo,LunYSchermo-12,TipoFinestra,TitoloFinestra$,1,2
+  LarghezzaInternaFinestra=InnerWidth-8
+  AltezzaInternaFinestra=InnerHeight-8
+ Else
+
+  CloseWindow #FinestraGioco
+
+ ;------------------
+ ;barra orizzontale
+ ;horizontal bar
+ ;---------------
+  PropGadget #ListaBottoni,0,AltezzaInternaFinestra,#MovimentoOrizzontale,#BarraOrizzontale,LarghezzaInternaFinestra,8
+
+ ;----------------
+ ;barra verticale
+ ;vertical bar
+ ;-------------
+  PropGadget #ListaBottoni,LarghezzaInternaFinestra,0,#MovimentoVerticale,#BarraVerticale,8,AltezzaInternaFinestra
+
+  TipoFinestra=#ProfonditaFinestra+#BottoneChiusuraFinestra+#DammiZeroZero+#FinestraAttiva
+  Window #FinestraGioco,0,11,LunXSchermo,LunYSchermo-11,TipoFinestra,TitoloFinestra$,1,2,#ListaBottoni
+ EndIf
+ Menus Off
+ WindowFont #Fonte
+End Statement
+
+Statement SegnaLeImmagini{}
+SHARED ImmagineUno
+SHARED ImmagineDue
+ WJam #DueColori
+ WColour #_BackGreen,#_BackGreen
+ WLocate 0,0:Print SPACE$(16)
+ WLocate 0,24:Print SPACE$(16)
+ WLocate ImmagineUno*16,0:WColour 0,#_Red:Print "L "
+ WLocate ImmagineDue*16,24:WColour0,#_Blue:Print "R "
+ WJam #UnColoreSolo
+End Statement
+
+Statement ImpostaLaFinestraBlocchi{}
+SHARED AltezzaInternaFinestraBlocchi
+SHARED AltezzaInternaFinestra
+SHARED LarghezzaInternaFinestraBlocchi
+SHARED LarghezzaInternaFinestra
+ TipoFinestra.l=#SpostamentoFinestra+#ProfonditaFinestra+#DammiZeroZero
+ Window #FinestraBlocchi,WLeftOff,WTopOff*2,WLeftOff+16*8+4,WTopOff+32+4,TipoFinestra,"Images",1,2
+ Menus Off
+ WindowFont #Fonte
+ AltezzaInternaFinestraBlocchi=32
+ LarghezzaInternaFinestraBlocchi=16*8
+
+ For Blocco.b=1 To 5
+  XBlocco=16*Blocco:YBlocco=8
+  WBlit Blocco,XBlocco,YBlocco
+ Next Blocco
+
+ WBlit #EssereOstile,16*6+8,16
+
+ WBlit #Draghetto,16*7+8,16
+
+ SegnaLeImmagini{}
+End Statement
+
+Statement ImpostaLaBitmap{}
+ BitMap #BitmapSchermo,#LarghezzaBitmap,#AltezzaBitmap,#ProfonditaSchermo
+End Statement
+
+Statement MostraIColori{}
+ WCls
+ For Colore.b=0 To 31
+  X.b=Colore MOD 8
+  Y.b=Colore/8
+  WBox X*27,Y*27,X*27+17,Y*27+17,Colore
+  WLocate X*27,Y*27
+  Print Colore
+ Next
+End Statement
+
+Statement CaricaIlLivelloCorrente{}
+SHARED EsseriOstili
+SHARED LivelloCorrente$
+SHARED LivelloModificato
+SHARED MappaBlocchi()
+SHARED MessoDraghettoBlu
+SHARED NuovaLinea$
+SHARED XGiocatoreNellaMappa
+SHARED YGiocatoreNellaMappa
+ PossoScrivereIlLivello.b=ReadFile(0,LivelloCorrente$)
+ If PossoScrivereIlLivello=True
+  FileInput 0
+  XBlocco=1:YBlocco=1:EsseriOstili=0:MessoDraghettoBlu=False
+  Repeat
+   Blocco.b=Cvi(Edit$(2))
+   If Blocco=#Draghetto
+    XGiocatoreNellaMappa=XBlocco
+    YGiocatoreNellaMappa=YBlocco
+    MessoDraghettoBlu=True
+   EndIf
+   If Blocco=#EssereOstile Then EsseriOstili+1
+   MappaBlocchi(XBlocco,YBlocco)=Blocco
+   Separatore$=Inkey$
+   Select Separatore$
+   Case ","
+    XBlocco+1
+   Case NuovaLinea$
+    XBlocco=1
+    YBlocco+1
+   End Select
+  Until YBlocco=#AltezzaMappa-1
+  CloseFile 0
+  PopInput
+  LivelloModificato=NOT Livello:MostraSeIlLivelloEStatoModificato{}
+ Else
+  Request "JumpingAroundLED request","I cannot read|the "+LivelloCorrente$+"!","OK"
+ EndIf
+End Statement
+
+Statement SalvaIlLivelloCorrente{}
+SHARED LivelloCorrente$
+SHARED LivelloModificato
+SHARED MappaBlocchi()
+SHARED NuovaLinea$
+ XBlocco=1:YBlocco=1
+ Repeat
+  Blocco=MappaBlocchi(XBlocco,YBlocco)
+  If Blocco=#Draghetto Then Draghetti+1
+  If Blocco=#EssereOstile Then EsseriOstili+1
+  XBlocco+1
+  If XBlocco=#LarghezzaMappa-1
+   XBlocco=1
+   YBlocco+1
+  EndIf
+ Until YBlocco=#AltezzaMappa-1
+ If Draghetti<>1
+  Request "JumpingAroundLED request","Almost and only one little|blue drake is allowed!","OK"
+  Statement Return
+ EndIf
+ If EsseriOstili>#MassimoEsseriOstili
+  EsseriOstiliDiTroppo=EsseriOstili-#MassimoEsseriOstili
+  Messaggio$="You should delete "+Str$(EsseriOstiliDiTroppo)+" Budd"
+  If EsseriOstiliDiTroppo=1 Then Messaggio$+"y!" Else Messaggio$+"ies!"
+  Request "JumpingAroundLED request",Messaggio$,"OK"
+  Statement Return
+ EndIf
+ If LivelloModificato<0 OR Livello<>LivelloModificato AND Exists(LivelloCorrente$)
+  Messaggio$="You have not modified|the "+LivelloCorrente$+" yet!"
+  Request "JumpingAroundLED request",Messaggio$,"OK"
+  Statement Return
+ EndIf
+ If Exists(LivelloCorrente$)
+  Messaggio$=LivelloCorrente$+" exists:|do you want to overwrite it?"
+  SovrascriviIlLivelloCorrente.b=Request("JumpingAroundLED request",Messaggio$,"Yes|No")
+  If SovrascriviIlLivelloCorrente=False Then Statement Return
+ Else
+  Messaggio$=LivelloCorrente$+" does not exists:|do you want to save it?"
+  ScriviIlLivelloCorrente.b=Request("JumpingAroundLED request",Messaggio$,"Yes|No")
+  If ScriviIlLivelloCorrente=False Then Statement Return
+ EndIf
+ KillFile LivelloCorrente$
+ PossoScrivereIlLivello.b=WriteFile (0,LivelloCorrente$)
+ If PossoScrivereIlLivello=True
+  FileOutput 0
+  XBlocco=1:YBlocco=1
+  Repeat
+   Blocco=MappaBlocchi(XBlocco,YBlocco)
+   Print Mki$(Blocco):XBlocco+1
+   If XBlocco<#LarghezzaMappa-1
+    Print ","
+   Else
+    NPrint ""
+    XBlocco=1
+    YBlocco+1
+   EndIf
+  Until YBlocco=#AltezzaMappa-1
+  CloseFile 0
+  PopOutput
+  LivelloModificato=NOT Livello:MostraSeIlLivelloEStatoModificato{}
+ Else
+  Request "JumpingAroundLED request","I cannot write|the "+LivelloCorrente$+"!","OK"
+ EndIf
+End Statement
+
+Statement CancellaTutto{}
+SHARED AltezzaInternaFinestra
+SHARED EsseriOstili
+SHARED LarghezzaInternaFinestra
+SHARED Livello
+SHARED LivelloModificato
+SHARED MappaBlocchi()
+SHARED MessoDraghettoBlu
+SHARED NuovaLinea$
+SHARED XS
+SHARED YS
+ XBlocco=1:YBlocco=1
+ Repeat
+  Boxf XBlocco*16,YBlocco*16,XBlocco*16+15,YBlocco*16+15,0
+  MappaBlocchi(XBlocco,YBlocco)=#Vuoto
+  XBlocco+1
+  If XBlocco=#LarghezzaMappa-1
+   XBlocco=1
+   YBlocco+1
+  EndIf
+ Until YBlocco=#AltezzaMappa-1
+ DisegnaLaMappa{}
+ BitMaptoWindow #BitmapSchermo,#FinestraGioco,XS,YS,0,0,LarghezzaInternaFinestra,AltezzaInternaFinestra
+ LivelloModificato=Livello:MostraSeIlLivelloEStatoModificato{}
+ MessoDraghettoBlu=False
+ EsseriOstili=0
+End Statement
+
+;************************************************
+;* Fine delle procedure ed inizio del programma *
+;******* Procedures end and program start *******
+;************************************************
+
+WBStartup
+
+CaricaLaFonteSteMar002{}
+
+LeggiITooltype{}
+
+CaricaLeForme{}
+
+RicavaLeForme{}
+
+ImpostaLoSchermo{}
+
+ImpostaLaFinestra{False}
+
+MostraIColori{}
+
+Aspetta{500}:If Tasto=#Escape Then Goto FineDelProgramma
+
+ImpostaLaBitmap{}
+
+CreaIlIlBordoDellaMappa{}
+
+BlitMode CookieMode
+
+WJam #UnColoreSolo
+
+WCls:WLocate 0,0
+NPrint "Shapes>",Right$(FormeGioco$,31)
+NPrint "Press a (mouse) key to continue"
+NPrint "Press the Esc key to quit."
+
+Aspetta{500}:If Tasto=#Escape Then Goto FineDelProgramma
+
+WCls:WLocate 0,0
+NPrint "How to edit by mouse:"
+NPrint "LEFT MOUSE BUTTON>image one"
+NPrint "On main window>draw"
+NPrint "On images window>select"
+NPrint "RIGHT MOUSE BUTTON>image two"
+NPrint "On main window>draw"
+NPrint "On Images window>select"
+NPrint "Cursor keys to scroll map"
+NPrint "L>load current level"
+NPrint "S>save current level"
+NPrint "Z>prev level"
+NPrint "X>next level"
+NPrint "BOTH MOUSE BUTTONS"
+Print "On main window>clear all"
+
+Aspetta{500}:If Tasto=#Escape Then Goto FineDelProgramma
+
+WCls:WLocate 0,0
+NPrint "How to edit by Joypad:"
+NPrint "REVERSE/FORWARD>choose image"
+NPrint "GREEN>prev level"
+NPrint "YELLOW>next level"
+NPrint "RED>draw image one"
+NPrint "BLUE>draw image two"
+NPrint "L>load current level"
+NPrint "S>save current level"
+NPrint "Z>prev level"
+NPrint  "X>next level"
+NPrint "REVERSE+FORWARD"
+Print "On main window>clear all"
+
+Aspetta{500}:If Tasto=#Escape Then Goto FineDelProgramma
+
+ImpostaLaFinestra{True}
+
+SetZone 0,0,0,16*19-1,16*14-1
+
+DisegnaLaMappa{}
+ImpostaLaFinestraBlocchi{}
+MostraSeIlLivelloEStatoModificato{}
+
+Activate #FinestraGioco
+Use Window #FinestraGioco
+
+SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+Redraw #FinestraGioco,#BarraOrizzontale:Redraw #FinestraGioco,#BarraVerticale
+
+Livello$=UStr$(Livello):LivelloCorrente$="Level"+Livello$:XBlocco=1:YBlocco=1
+Repeat
+ EventoFinestre=Event
+ Select EventWindow
+ Case #FinestraGioco
+  Use Window #FinestraGioco
+  BitMaptoWindow 0,0,XS,YS,0,0,LarghezzaInternaFinestra,AltezzaInternaFinestra
+  MossaMappaConITasti=False
+  MossaMappaConLeBarre=False
+  BloccoDelTopo{}
+  TitoloFinestra$="Level>"+Livello$+" Baddies>"+UStr$(EsseriOstili)
+  WTitle TitoloFinestra$,TitoloSchermo$
+  Select EventoFinestre
+  Case #HaiPremutoUnTastoDelTopo
+   If Joyb(0)=3 Then CancellaTutto{}
+   If Zone(WMouseX,WMouseY)=0
+    TastoPremutoDelTopo.b=Joyb(0)
+    Select TastoPremutoDelTopo
+    Case 1
+     ImmagineAttiva=1
+     DisegnaLOggetto{0,0,0,"Edit"}
+    Case 2
+     ImmagineAttiva=2
+     DisegnaLOggetto{0,0,0,"Edit"}
+    End Select
+   EndIf
+   Editazione$="Mouse"
+  Case #HaiPremutoUnBottone
+   Select GadgetHit
+   Case #BarraVerticale
+    NuovaYMappa=VPropPot(#ListaBottoni,#BarraVerticale)*(YMappaFuori+1)
+    If YMappa<>NuovaYMappa
+     YMappa=NuovaYMappa
+    EndIf
+   Case #BarraOrizzontale
+    NuovaXMappa=HPropPot(#ListaBottoni,#BarraOrizzontale)*(XMappaFuori+1)
+    If XMappa<>NuovaXMappa
+     XMappa=NuovaXMappa
+    EndIf
+   End Select
+   DisegnaLaMappa{}
+   MossaMappaConLeBarre=True
+  Case #HaiRilasciatoUnBottone
+   Select GadgetHit
+   Case #BarraVerticale
+    NuovaYMappa=VPropPot(#ListaBottoni,#BarraVerticale)*(YMappaFuori+1)
+    If YMappa<>NuovaYMappa
+     YMappa=NuovaYMappa
+    EndIf
+   Case #BarraOrizzontale
+    NuovaXMappa=HPropPot(#ListaBottoni,#BarraOrizzontale)*(XMappaFuori+1)
+    If XMappa<>NuovaXMappa
+     XMappa=NuovaXMappa
+    EndIf
+   End Select
+   DisegnaLaMappa{}
+   MossaMappaConLeBarre=True
+  Case #HaiPremutoUnTasto
+   TastoPremuto$=LCase$(Inkey$)
+   Select TastoPremuto$
+   Case TastoEsc$
+    EventoFinestre=#HaiChiusoLaFinestra
+   Case TastoCursoreSu$
+    YBlocco-16
+    Nord{}
+    SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case TastoCursoreGiu$
+    YBlocco+16
+    Sud{}
+    SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case TastoCursoreDestra$
+    XBlocco+16
+    Est{}
+    SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case TastoCursoreSinistra$
+    XBlocco-16
+    Ovest{}
+    SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case "l"
+    CaricaIlLivelloCorrente{}
+    DisegnaLaMappa{}
+   Case "s"
+    SalvaIlLivelloCorrente{}
+   Case "z"
+    If Livello>0
+     Livello-1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    MostraSeIlLivelloEStatoModificato{}
+   Case "x"
+    If Livello<127
+     Livello+1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    MostraSeIlLivelloEStatoModificato{}
+   End Select
+  Case #HaiAttivatoUnaFinestra
+   Use Window #FinestraGioco
+  Default
+   TastoPremutoDelJoypad.b=Gameb(1)
+   If TastoPremutoDelJoypad=#_ReverseB+#_ForwardB Then CancellaTutto{}
+   Select TastoPremutoDelJoypad
+   Case #_PlayB
+    Activate #FinestraBlocchi
+    Use Window #FinestraBlocchi
+   Case #_ReverseB
+    Select ImmagineAttiva
+    Case 1
+     If ImmagineUno>#Vuoto Then ImmagineUno-1
+    Case 2
+     If ImmagineDue>#Vuoto Then ImmagineDue-1
+    End Select
+    SegnaLeImmagini{}
+    Editazione$="Joypad"
+   Case #_ForwardB
+    Select ImmagineAttiva
+    Case 1
+     If ImmagineUno<7 Then ImmagineUno+1
+    Case 2
+     If ImmagineDue<7 Then ImmagineDue+1
+    End Select
+    SegnaLeImmagini{}
+    Editazione$="Joypad"
+   Case #_GreenB
+    If Livello>0
+     Livello-1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    Editazione$="Joypad"
+    MostraSeIlLivelloEStatoModificato{}
+   Case #_YellowB
+    If Livello<127
+     Livello+1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    Editazione$="Joypad"
+    MostraSeIlLivelloEStatoModificato{}
+   Case #_RedB
+    ImmagineAttiva=1
+    DisegnaLOggetto{0,0,0,"Edit"}
+    Editazione$="Joypad"
+   Case #_BlueB
+    ImmagineAttiva=2
+    DisegnaLOggetto{0,0,0,"Edit"}
+    Editazione$="Joypad"
+   Default
+    Leva.b=Joyr(1)
+    If Leva<>#NessunaDirezioneLeva
+     Select Leva
+     Case #LevaSu
+      If YBloccoJoypad>0
+       YBloccoJoypad-1
+      Else
+       YBlocco-16
+       Nord{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaSuDestra
+      If YBloccoJoypad>0
+       YBloccoJoypad-1
+      Else
+       YBlocco-16
+       Nord{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad<18
+       XBloccoJoypad+1
+      Else
+       XBlocco+16
+       Est{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaDestra
+      If XBloccoJoypad<18
+       XBloccoJoypad+1
+      Else
+       XBlocco+16
+       Est{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaGiuDestra
+      If YBloccoJoypad<13
+       YBloccoJoypad+1
+      Else
+       YBlocco+16
+       Sud{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad<18
+       XBloccoJoypad+1
+      Else
+       XBlocco+16
+       Est{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaGiu
+      If YBloccoJoypad<13
+       YBloccoJoypad+1
+      Else
+       YBlocco+16
+       Sud{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaGiuSinistra
+      If YBloccoJoypad<13
+       YBloccoJoypad+1
+      Else
+       YBlocco+16
+       Sud{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad>0
+       XBloccoJoypad-1
+      Else
+       XBlocco-16
+       Ovest{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaSinistra
+      If XBloccoJoypad>0
+       XBloccoJoypad-1
+      Else
+       XBlocco-16
+       Ovest{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaSuSinistra
+      If YBloccoJoypad>0
+       YBloccoJoypad-1
+      Else
+       YBlocco-16
+       Nord{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad>0
+       XBloccoJoypad-1
+      Else
+       XBlocco-16
+       Ovest{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     End Select
+     Editazione$="Joypad"
+    EndIf
+   End Select
+  End Select
+ Case #FinestraBlocchi
+  BitMaptoWindow 0,0,XS,YS,0,0,LarghezzaInternaFinestra,AltezzaInternaFinestra
+  Use Window #FinestraBlocchi
+  Select EventoFinestre
+  Case #HaiPremutoUnTastoDelTopo
+   TastoPremutoDelTopo=MButtons
+   XTopo=WMouseX:YTopo=WMouseY
+   If XTopo>=0 AND YTopo>7 AND XTopo<LarghezzaInternaFinestraBlocchi AND YTopo<24
+    If TastoPremutoDelTopo=1 OR TastoPremutoDelTopo=5
+     ImmagineUno=XTopo/16
+     ImmagineAttiva=1
+    EndIf
+    If TastoPremutoDelTopo=2 OR TastoPremutoDelTopo=6
+     ImmagineDue=XTopo/16
+     ImmagineAttiva=2
+    EndIf
+    SegnaLeImmagini{}
+   EndIf
+   Editazione$="Mouse"
+  Case #HaiPremutoUnTasto
+   TastoPremuto$=Inkey$
+   Select TastoPremuto$
+   Case TastoEsc$
+    EventoFinestre=#HaiChiusoLaFinestra
+   Case TastoCursoreSu$
+    YBlocco-16
+    Nord{}
+    SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case TastoCursoreGiu$
+    YBlocco+16
+    Sud{}
+    SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case TastoCursoreDestra$
+    XBlocco+16
+    Est{}
+    SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case TastoCursoreSinistra$
+    XBlocco-16
+    Ovest{}
+    SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+    Redraw#FinestraGioco,#BarraOrizzontale
+   Case "l"
+    CaricaIlLivelloCorrente{}
+    DisegnaLaMappa{}
+   Case "s"
+    SalvaIlLivelloCorrente{}
+   Case "z"
+    If Livello>0
+     Livello-1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    MostraSeIlLivelloEStatoModificato{}
+   Case "x"
+    If Livello<127
+     Livello+1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    MostraSeIlLivelloEStatoModificato{}
+   End Select
+  Default
+   TastoPremutoDelJoypad=Gameb(1)
+   Select TastoPremutoDelJoypad
+   Case #_PlayB
+    Activate #FinestraGioco
+    Use Window #FinestraGioco
+    Editazione$="Joypad"
+   Case #_ReverseB
+    Select ImmagineAttiva
+    Case 1
+     If ImmagineUno>#Vuoto Then ImmagineUno-1
+    Case 2
+     If ImmagineDue>#Vuoto Then ImmagineDue-1
+    End Select
+    SegnaLeImmagini{}
+    Editazione$="Joypad"
+   Case #_ForwardB
+    Select ImmagineAttiva
+    Case 1
+     If ImmagineUno<7 Then ImmagineUno+1
+    Case 2
+     If ImmagineDue<7 Then ImmagineDue+1
+    End Select
+    SegnaLeImmagini{}
+    Editazione$="Joypad"
+   Case #_GreenB
+    If Livello>0
+     Livello-1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    Editazione$="Joypad"
+    MostraSeIlLivelloEStatoModificato{}
+   Case #_YellowB
+    If Livello<127
+     Livello+1
+     Livello$=UStr$(Livello)
+     LivelloCorrente$="Level"+Livello$
+    EndIf
+    Editazione$="Joypad"
+    MostraSeIlLivelloEStatoModificato{}
+   Case #_RedB
+    DisegnaLOggetto{0,0,0,"Edit"}
+    Editazione$="Joypad"
+   Case #_BlueB
+    DisegnaLOggetto{0,0,0,"Edit"}
+    Editazione$="Joypad"
+   Default
+    Leva=Joyr(1)
+    If Leva<>#NessunaDirezioneLeva
+     Select Leva
+     Case #LevaSu
+      If YBloccoJoypad>0
+       YBloccoJoypad-1
+      Else
+       YBlocco-16
+       Nord{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaSuDestra
+      If YBloccoJoypad>0
+       YBloccoJoypad-1
+      Else
+       YBlocco-16
+       Nord{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad<18
+       XBloccoJoypad+1
+      Else
+       XBlocco+16
+       Est{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaDestra
+      If XBloccoJoypad<18
+       XBloccoJoypad+1
+      Else
+       XBlocco+16
+       Est{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaGiuDestra
+      If YBloccoJoypad<13
+       YBloccoJoypad+1
+      Else
+       YBlocco+16
+       Sud{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad<18
+       XBloccoJoypad+1
+      Else
+       XBlocco+16
+       Est{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaGiu
+      If YBloccoJoypad<13
+       YBloccoJoypad+1
+      Else
+       YBlocco+16
+       Sud{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaGiuSinistra
+      If YBloccoJoypad<13
+       YBloccoJoypad+1
+      Else
+       YBlocco+16
+       Sud{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad>0
+       XBloccoJoypad-1
+      Else
+       XBlocco-16
+       Ovest{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaSinistra
+      If XBloccoJoypad>0
+       XBloccoJoypad-1
+      Else
+       XBlocco-16
+       Ovest{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     Case #LevaSuSinistra
+      If YBloccoJoypad>0
+       YBloccoJoypad-1
+      Else
+       YBlocco-16
+       Nord{}
+       SetVProp #ListaBottoni,#BarraVerticale,YMappa/YMappaFuori,1/YMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+      If XBloccoJoypad>0
+       XBloccoJoypad-1
+      Else
+       XBlocco-16
+       Ovest{}
+       SetHProp #ListaBottoni,#BarraOrizzontale,XMappa/XMappaFuori,1/XMappaFuori
+       Redraw#FinestraGioco,#BarraOrizzontale
+      EndIf
+     End Select
+     Editazione$="Joypad"
+    EndIf
+   End Select
+  Case #HaiAttivatoUnaFinestra
+   Use Window #FinestraBlocchi
+  End Select
+ End Select
+Until EventoFinestre=#HaiChiusoLaFinestra
+FineDelProgramma
+End
