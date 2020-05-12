@@ -1,0 +1,131 @@
+;-> PoligoniRegolari by Stefano Maria Regattin
+;i> 7 marzo 2012
+;m> 17,20,21 marzo 2012
+;m> 11,12 aprile 2012
+;m> 25 aprile 2019
+;------------------
+JMP InizioDelProgramma
+Dc.b "$VER: PoligoniRegolari 1.0 (25.4.2019)"
+Even
+InizioDelProgramma
+#FinestraRidimensionabile=1
+#FinestraMovibile=2
+#FinestraCopribile=4
+#FinestraConBottoneChiusura=8
+#FinestraConBordoDestra=16
+#FinestraConBordoSotto=32
+#FinestraDiSfondo=256
+#FinestraConBordi=1024
+#FinestraSenzaBordi=2048
+#FinestraAttivata=4096
+#TipoFinestra=#FinestraCopribile+#FinestraConBottoneChiusura+#FinestraConBordi+#FinestraAttivata
+
+#HaiRidimensionatoLaFinestra=2
+#HaiCorrottoLaFinestra=4
+#HaiPremutoITastiDelTopo=8
+#HaiMossoIlTopo=16
+#HaiPremutoUnPulsante=32
+#HaiRilasciatoUnPulsante=64
+#HaiAttivatoUnMenu=256
+#HaiChiusoLaFinestra=512
+#HaiPremutoUnTasto=1024
+#HaiInseritoUnDisco=32768
+#HaiToltoUnDisco=65536
+#HaiAttivatoLaFinestra=262144
+#HaiDisattivatoLaFinestra=524288
+
+#Finestra=0
+#FonteTopaz=0
+#GrandezzaFonteTopaz=8
+#SchermoWB=0
+
+Statement Dissolvenza{}
+ ModoUscita.b=Rnd(98) MOD 3
+ If ModoUscita=0
+  XPosUltimoPuntoPari.b=InnerWidth MOD 2:YPosUltimoPuntoPari.b=InnerHeight MOD 2
+  For XPosPunto.w=0 To InnerWidth-1 Step 2
+   For YPosPunto.w=0 To InnerHeight-1 Step 2
+    WPlot XPosPunto,YPosPunto,1
+   Next YPosPunto
+   VWait
+  Next XPosPunto
+  For YPosPunto=0 To InnerHeight-1 Step 2
+   For XPosPunto=1 To InnerWidth-1 Step 2
+    WPlot XPosPunto,YPosPunto,1
+   Next XPosPunto
+   VWait
+  Next YPosPunto
+  For XPosPunto=InnerWidth-2+XPosUltimoPuntoPari To 0 Step -2
+   For YPosPunto=InnerHeight-1-YPosUltimoPuntoPari To 0 Step -2
+    WPlot XPosPunto,YPosPunto,1
+   Next YPosPunto
+   VWait
+  Next XPosPunto
+  For YPosPunto=InnerHeight-1-YPosUltimoPuntoPari To 0 Step -2
+   For XPosPunto=InnerWidth-1-XPosUltimoPuntoPari To 0 Step -2
+    WPlot XPosPunto,YPosPunto,1
+   Next XPosPunto
+   VWait
+  Next YPosPunto
+ Else
+  If WBHeight>256 Then DoppiaAltezza.b=2 Else DoppiaAltezza=1
+  RigaDiQuadretti.b=InnerWidth/16:QuadrettiTrovati.w=RigaDiQuadretti*(InnerHeight/(8*DoppiaAltezza))
+  Dim Quadretti.b(QuadrettiTrovati-1)
+  QuadrettiNeri.w=0
+  Repeat
+   QuadrettoTrovato.w=Rnd(QuadrettiTrovati-QuadrettiNeri-1)+1:QuadrettoNero.w=0
+   For Quadretto.w=0 To QuadrettiTrovati-1
+    If Quadretti(Quadretto)=False Then QuadrettoTrovato-1:If QuadrettoTrovato=0 Then QuadrettoNero=Quadretto
+   Next Quadretto
+   XPosQuadretto.w=QuadrettoNero MOD RigaDiQuadretti*16
+   YPosQuadretto.w=QuadrettoNero/RigaDiQuadretti*8*DoppiaAltezza
+   WBox XPosQuadretto,YPosQuadretto,XPosQuadretto+15,YPosQuadretto+8*DoppiaAltezza-1,1:VWait
+   Quadretti(QuadrettoNero)=True:QuadrettiNeri+1
+  Until QuadrettiNeri=QuadrettiTrovati
+ EndIf
+End Statement
+
+WBStartup
+LoadFont #FonteTopaz,"topaz.font",#GrandezzaFonteTopaz
+WbToScreen #SchermoWB
+Window #Finestra,0,0,WBWidth,WBHeight,#TipoFinestra,"PoligoniRegolari 1.0 by Stefano Maria Regattin",1,2
+WindowFont #FonteTopaz
+XPosCentroDelPoligono.w=InnerWidth/2:YPosCentroDelPoligono.w=InnerHeight/2
+XDisPuntoDelPoligono.w=YPosCentroDelPoligono*0.94
+If WBHeight>256
+ YDisPuntoDelPoligono.w=YPosCentroDelPoligono*0.94
+Else
+ YDisPuntoDelPoligono=YPosCentroDelPoligono*0.47
+EndIf
+FineDelProgramma.b=False
+Repeat
+ WCls:Wline 0,0,InnerWidth-1,0,0:WLocate 0,0:Print "Type the number of polygon sides>"
+ LatiDelPoligono.b=Min(Max(Val(Edit$("3",2)),3),30):LatoDelPoligono.b=0
+ Gradi.f=0:GradiDeiPuntiDelPoligono.f=360/LatiDelPoligono:SaltaUnPunto.b=False
+ If LatiDelPoligono>3 Then WLocate 0,8:Print "Would you skip a point (y/n) ?>":SaltaUnPunto=LCase$(Edit$(1))="y"
+ WCls:Wline 0,0,InnerWidth-1,0,0:WLocate 0,0:NPrint "Sides angle>",GradiDeiPuntiDelPoligono," degrees."
+ PoligonoTerminato.b=False
+ Repeat
+  If Gradi=0 OR (Gradi=360+GradiDeiPuntiDelPoligono AND LatiDelPoligono MOD 2=0)
+   XFinLinea.w=XPosCentroDelPoligono+Sin(Gradi*Pi/180)*XDisPuntoDelPoligono
+   YFinLinea.w=YPosCentroDelPoligono-Cos(Gradi*Pi/180)*YDisPuntoDelPoligono
+  Else
+   XIniLinea=XFinLinea:YIniLinea=YFinLinea
+   XFinLinea.w=XPosCentroDelPoligono+Sin(Gradi*Pi/180)*XDisPuntoDelPoligono
+   YFinLinea.w=YPosCentroDelPoligono-Cos(Gradi*Pi/180)*YDisPuntoDelPoligono
+   Wline XIniLinea,YIniLinea,XFinLinea,YFinLinea,1
+   LatoDelPoligono+1:Delay_ 100
+  End If
+  If Gradi<>360 Then Gradi+GradiDeiPuntiDelPoligono
+  If SaltaUnPunto=True Then Gradi+GradiDeiPuntiDelPoligono
+  If LatoDelPoligono=LatiDelPoligono Then PoligonoTerminato=True
+  EventoFinestra.l=Event:If EventoFinestra=#HaiMossoIlTopo Then PoligonoTerminato=True
+ Until PoligonoTerminato=True
+ WLocate 0,InnerHeight-#GrandezzaFonteTopaz:WColour 0,1
+ Print Centre$("Polygon terminated, click the window close button to quit...",InnerWidth/#GrandezzaFonteTopaz):WColour 1,0
+ FlushEvents:EventoFinestra.l=WaitEvent
+ If EventoFinestra=#HaiChiusoLaFinestra Then FineDelProgramma=True
+Until FineDelProgramma=True
+Dissolvenza{}
+CloseWindow #Finestra
+End
